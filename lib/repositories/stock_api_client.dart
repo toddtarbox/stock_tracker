@@ -5,34 +5,21 @@ import 'package:http/http.dart';
 
 import 'package:stocktracker/models/models.dart';
 import 'package:stocktracker/models/stock_historic.dart';
-import 'package:stocktracker/secrets.dart';
 
 class StockApiClient {
-  String baseBatchUrl =
-      'https://cloud.iexapis.com/stable/stock/%s/batch?&types=quote,intraday-prices&range=3m&token=API_KEY';
-  String baseHistoricUrl =
-      'https://cloud.iexapis.com/stable/stock/%s/chart/3m?token=API_KEY';
+  static const IEX_API_KEY = String.fromEnvironment('IEX_API_KEY');
+  static const String baseBatchUrl =
+      'https://cloud.iexapis.com/stable/stock/%s/batch?&types=quote,intraday-prices&range=3m&token=' + IEX_API_KEY;
+  static const String baseHistoricUrl =
+      'https://cloud.iexapis.com/stable/stock/%s/chart/3m?token=' + IEX_API_KEY;
 
   final Client httpClient;
 
-  Secrets secrets;
-
   StockApiClient({
     @required this.httpClient,
-  }) : assert(httpClient != null);
-
-  Future<void> _init() async {
-    if (secrets == null) {
-      secrets = await SecretLoader(secretPath: 'assets/secrets.json').load();
-
-      baseBatchUrl = baseBatchUrl.replaceAll('API_KEY', secrets.apiKey);
-      baseHistoricUrl = baseHistoricUrl.replaceAll('API_KEY', secrets.apiKey);
-    }
-  }
+  }) : assert(httpClient != null && String.fromEnvironment('IEX_API_KEY') != '');
 
   Future<StockQuote> fetchStock(String symbol) async {
-    await _init();
-
     final quoteUrl = baseBatchUrl.replaceAll('%s', symbol);
     final response = await httpClient.get(quoteUrl);
 
@@ -45,8 +32,6 @@ class StockApiClient {
   }
 
   Future<StockHistoric> fetchStockHistoric(String symbol) async {
-    await _init();
-
     final quoteUrl = baseHistoricUrl.replaceAll('%s', symbol);
     final response = await httpClient.get(quoteUrl);
 

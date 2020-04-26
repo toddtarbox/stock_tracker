@@ -63,5 +63,3 @@ workflows:
       email:
         recipients:
           - ttarbox0603@gmail.com
-      static_pages:
-        subdomain: stock_tracker

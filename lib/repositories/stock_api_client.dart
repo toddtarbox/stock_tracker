@@ -9,7 +9,7 @@ import 'package:stocktracker/secrets.dart';
 
 class StockApiClient {
   static const String baseBatchUrl =
-      'https://cloud.iexapis.com/stable/stock/%s/batch?&types=quote,intraday-prices&range=3m&token=';
+      'https://cloud.iexapis.com/stable/stock/%s/batch?types=quote,intraday-prices&range=3m&token=';
   static const String baseHistoricUrl =
       'https://cloud.iexapis.com/stable/stock/%s/chart/3m?token=';
 

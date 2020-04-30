@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,6 +42,12 @@ class _StockState extends State<Stock> {
                 BlocProvider.of<StockBloc>(context)
                     .add(FetchStock(symbol: symbol));
               }
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () async {
+              BlocProvider.of<AuthenticationBloc>(context).add(LoggedOut());
             },
           )
         ],

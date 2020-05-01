@@ -16,10 +16,12 @@ const _awsClientId = '19qmv49jfbr7jfhojgoc71c2oc';
 class UserRepository {
   final UserApiClient userApiClient;
 
-  CognitoUserPool _userPool = new CognitoUserPool(_awsUserPoolId, _awsClientId);
+  final CognitoUserPool _userPool = new CognitoUserPool(_awsUserPoolId, _awsClientId);
   CognitoUser _cognitoUser;
   CognitoUserSession _session;
   CognitoCredentials credentials;
+
+  final EncryptedAuthStorageService encryptedAuthStorageService = EncryptedAuthStorageService();
 
   UserRepository({@required this.userApiClient})
       : assert(userApiClient != null);
@@ -29,8 +31,19 @@ class UserRepository {
     return prefs.containsKey('bio-auth-configured') && prefs.getBool('bio-auth-configured');
   }
 
+  Future<bool> _canBioAuthAuthenticate() async {
+    return encryptedAuthStorageService.canAuthenticate();
+  }
+
   Future _setBioAuthConfigured(bool configured) async {
     final prefs = await SharedPreferences.getInstance();
+
+    if (!configured) {
+      if (await encryptedAuthStorageService.canAuthenticate()) {
+        encryptedAuthStorageService.deleteCredentials();
+      }
+    }
+
     return prefs.setBool('bio-auth-configured', configured);
   }
 
@@ -38,13 +51,10 @@ class UserRepository {
   Future<bool> init() async {
     final isBiometricAuthConfigured = await _isBioAuthConfigured();
     if (isBiometricAuthConfigured) {
-      EncryptedAuthStorageService encryptedAuthStorageService = EncryptedAuthStorageService();
-      String savedUsernamePassword = await encryptedAuthStorageService.readString('username:password');
-      if (savedUsernamePassword != null) {
-        final String savedUsername = savedUsernamePassword.split(':')[0];
-        final String savedPassword = savedUsernamePassword.split(':')[1];
+      List<String> savedUsernamePassword = await encryptedAuthStorageService.loadCredentials();
+      if (savedUsernamePassword != null && savedUsernamePassword.length == 2) {
         try {
-          await authenticate(username: savedUsername, password: savedPassword);
+          await authenticate(username: savedUsernamePassword[0], password: savedUsernamePassword[1]);
         } on CognitoClientException catch (e) {
           return false;
         }
@@ -113,15 +123,14 @@ class UserRepository {
     user.hasAccess = true;
 
     final isBiometricAuthConfigured = await _isBioAuthConfigured();
-    if (!isBiometricAuthConfigured) {
-      EncryptedAuthStorageService encryptedAuthStorageService = EncryptedAuthStorageService();
+    final canBioAuthAuthenticate = await _canBioAuthAuthenticate();
+    if (!isBiometricAuthConfigured && canBioAuthAuthenticate) {
       try {
-        await encryptedAuthStorageService.writeString(
-            'username:password', username + ":" + password);
+        await encryptedAuthStorageService.storeCredentials(username, password);
+        await _setBioAuthConfigured(true);
       } on Exception catch (e) {
         // User canceled biometric prompt, ignore
       }
-      await _setBioAuthConfigured(true);
     }
 
     return user;

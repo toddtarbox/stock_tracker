@@ -1,9 +1,12 @@
 import 'dart:async';
+
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stocktracker/models/models.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import 'package:stocktracker/models/models.dart';
 import 'package:stocktracker/widgets/widgets.dart';
 import 'package:stocktracker/blocs/blocs.dart';
 
@@ -120,6 +123,7 @@ class _StockState extends State<Stock> {
         ),
         _renderIntraDayChart(context, stockQuote),
         _renderHistoricChart(context, stockQuote),
+        _renderNews(context, stockQuote),
       ],
     );
   }
@@ -157,6 +161,7 @@ class _StockState extends State<Stock> {
                 children: <Widget>[
                   _renderIntraDayChart(context, stockQuote),
                   _renderHistoricChart(context, stockQuote),
+                  _renderNews(context, stockQuote),
                 ],
               ),
             ),
@@ -172,6 +177,30 @@ class _StockState extends State<Stock> {
             fontSize: 24,
             fontWeight: FontWeight.w200,
             color: stockQuote.isPositiveChange() ? Colors.green : Colors.red));
+  }
+
+  Widget _renderNews(BuildContext context, StockQuote stockQuote) {
+    return Card(
+        child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: stockQuote.stockNews.newsEntries
+                  .map((newsEntry) => Padding(
+                      padding: EdgeInsets.all(10),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                          text: TextSpan(
+                              text: newsEntry.headline + '\n' + '(Source: ${newsEntry.source})',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  await launch(newsEntry.link);
+                                }))))
+                  .toList(),
+            )));
   }
 
   Widget _renderIntraDayChart(BuildContext context, StockQuote stockQuote) {

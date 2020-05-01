@@ -18,4 +18,8 @@ class StockRepository {
   Future<StockHistoric> getStockHistoric(String symbol) async {
     return stockApiClient.fetchStockHistoric(symbol);
   }
+
+  Future<StockNews> getStockNews(String symbol) async {
+    return stockApiClient.fetchStockNews(symbol);
+  }
 }

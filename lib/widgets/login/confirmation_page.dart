@@ -100,9 +100,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   child: Text('Confirm Account'),
                 ),
                 Container(
-                  child: state is SignUpLoading
-                      ? LoadingIndicator()
-                      : null,
+                  child: state is SignUpLoading ? LoadingIndicator() : null,
                 ),
               ],
             ),

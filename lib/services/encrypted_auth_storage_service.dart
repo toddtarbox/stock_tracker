@@ -1,4 +1,3 @@
-
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -7,7 +6,9 @@ class EncryptedAuthStorageService {
   final String _credentialsStorageKey = 'credentials-key';
 
   Future<bool> canAuthenticate() async {
-    if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS || UniversalPlatform.isMacOS) {
+    if (UniversalPlatform.isAndroid ||
+        UniversalPlatform.isIOS ||
+        UniversalPlatform.isMacOS) {
       return await BiometricStorage().canAuthenticate() ==
           CanAuthenticateResponse.success;
     } else {
@@ -16,7 +17,8 @@ class EncryptedAuthStorageService {
   }
 
   Future<BiometricStorageFile> _getCredentialsStorage() async {
-    return await BiometricStorage().getStorage(_authStorageFile + _credentialsStorageKey);
+    return await BiometricStorage()
+        .getStorage(_authStorageFile + _credentialsStorageKey);
   }
 
   Future<void> storeCredentials(String username, String password) async {

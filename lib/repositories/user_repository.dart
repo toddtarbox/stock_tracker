@@ -16,19 +16,22 @@ const _awsClientId = '19qmv49jfbr7jfhojgoc71c2oc';
 class UserRepository {
   final UserApiClient userApiClient;
 
-  final CognitoUserPool _userPool = new CognitoUserPool(_awsUserPoolId, _awsClientId);
+  final CognitoUserPool _userPool =
+      new CognitoUserPool(_awsUserPoolId, _awsClientId);
   CognitoUser _cognitoUser;
   CognitoUserSession _session;
   CognitoCredentials credentials;
 
-  final EncryptedAuthStorageService encryptedAuthStorageService = EncryptedAuthStorageService();
+  final EncryptedAuthStorageService encryptedAuthStorageService =
+      EncryptedAuthStorageService();
 
   UserRepository({@required this.userApiClient})
       : assert(userApiClient != null);
 
   Future<bool> _isBioAuthConfigured() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey('bio-auth-configured') && prefs.getBool('bio-auth-configured');
+    return prefs.containsKey('bio-auth-configured') &&
+        prefs.getBool('bio-auth-configured');
   }
 
   Future<bool> _canBioAuthAuthenticate() async {
@@ -44,10 +47,13 @@ class UserRepository {
   Future<bool> init() async {
     final isBiometricAuthConfigured = await _isBioAuthConfigured();
     if (isBiometricAuthConfigured) {
-      List<String> savedUsernamePassword = await encryptedAuthStorageService.loadCredentials();
+      List<String> savedUsernamePassword =
+          await encryptedAuthStorageService.loadCredentials();
       if (savedUsernamePassword != null && savedUsernamePassword.length == 2) {
         try {
-          await authenticate(username: savedUsernamePassword[0], password: savedUsernamePassword[1]);
+          await authenticate(
+              username: savedUsernamePassword[0],
+              password: savedUsernamePassword[1]);
         } on CognitoClientException catch (e) {
           return false;
         }
@@ -86,8 +92,7 @@ class UserRepository {
     @required String username,
     @required String password,
   }) async {
-    _cognitoUser =
-        new CognitoUser(username, _userPool);
+    _cognitoUser = new CognitoUser(username, _userPool);
 
     final authDetails = new AuthenticationDetails(
       username: username,
@@ -131,16 +136,14 @@ class UserRepository {
 
   /// Confirm user's account with confirmation code sent to email
   Future<bool> confirmAccount(String username, String confirmationCode) async {
-    _cognitoUser =
-        new CognitoUser(username, _userPool);
+    _cognitoUser = new CognitoUser(username, _userPool);
 
     return await _cognitoUser.confirmRegistration(confirmationCode);
   }
 
   /// Resend confirmation code to user's email
   Future<void> resendConfirmationCode(String email) async {
-    _cognitoUser =
-        new CognitoUser(email, _userPool);
+    _cognitoUser = new CognitoUser(email, _userPool);
     await _cognitoUser.resendConfirmationCode();
   }
 

@@ -22,10 +22,13 @@ class StockBloc extends Bloc<StockEvent, StockState> {
             await stockRepository.getStockQuote(event.symbol);
         final StockHistoric stockHistoric =
             await stockRepository.getStockHistoric(event.symbol);
+        final StockNews stockNews =
+            await stockRepository.getStockNews(event.symbol);
         stock.stockHistoric = stockHistoric;
+        stock.stockNews = stockNews;
         yield StockLoaded(stockQuote: stock);
-      } catch (_) {
-        yield StockError();
+      } catch (error) {
+        yield StockError(error: error);
       }
     }
 
@@ -36,7 +39,10 @@ class StockBloc extends Bloc<StockEvent, StockState> {
             await stockRepository.getStockQuote(event.symbol);
         final StockHistoric stockHistoric =
             await stockRepository.getStockHistoric(event.symbol);
+        final StockNews stockNews =
+            await stockRepository.getStockNews(event.symbol);
         stock.stockHistoric = stockHistoric;
+        stock.stockNews = stockNews;
         yield StockLoaded(stockQuote: stock);
       } catch (_) {
         yield state;

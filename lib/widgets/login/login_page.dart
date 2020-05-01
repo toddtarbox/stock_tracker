@@ -84,25 +84,28 @@ class _LoginPageState extends State<LoginPage> {
           return Form(
             key: _formKey,
             child: Center(
-              child: Container (
+              child: Container(
                 width: 350,
                 height: 350,
                 child: Card(
                   child: Stack(
                     children: [
                       ListView(
-                        padding: EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 10),
+                        padding: EdgeInsets.only(
+                            left: 30, right: 30, top: 30, bottom: 10),
                         children: [
                           Container(
                             child: TextFormField(
                               autofocus: true,
                               textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(labelText: 'Username'),
+                              decoration:
+                                  InputDecoration(labelText: 'Username'),
                               controller: _usernameController,
                               focusNode: _usernameFocus,
                               onFieldSubmitted: (value) {
                                 _usernameFocus.unfocus();
-                                FocusScope.of(context).requestFocus(_passwordFocus);
+                                FocusScope.of(context)
+                                    .requestFocus(_passwordFocus);
                               },
                               validator: (value) {
                                 if (value.isEmpty) {
@@ -155,7 +158,8 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                       Container(
-                        child: state is LoginLoading ? LoadingIndicator() : null,
+                        child:
+                            state is LoginLoading ? LoadingIndicator() : null,
                       ),
                     ],
                   ),

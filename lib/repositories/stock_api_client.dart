@@ -12,6 +12,8 @@ class StockApiClient {
       'https://cloud.iexapis.com/stable/stock/%s/batch?types=quote,intraday-prices&range=3m&token=';
   static const String baseHistoricUrl =
       'https://cloud.iexapis.com/stable/stock/%s/chart/3m?token=';
+  static const String baseNewsUrl =
+      'https://cloud.iexapis.com/stable/stock/%s/news/last/5?token=';
 
   final Client httpClient;
 
@@ -45,5 +47,17 @@ class StockApiClient {
 
     final dayJson = jsonDecode(response.body);
     return StockHistoric.fromJson(dayJson);
+  }
+
+  Future<StockNews> fetchStockNews(String symbol) async {
+    final quoteUrl = baseNewsUrl.replaceAll('%s', symbol) + secrets.apiKey;
+    final response = await httpClient.get(quoteUrl);
+
+    if (response.statusCode != 200) {
+      throw Exception('Error getting stock news for symbol: ' + symbol);
+    }
+
+    final newsJson = jsonDecode(response.body);
+    return StockNews.fromJson(newsJson);
   }
 }

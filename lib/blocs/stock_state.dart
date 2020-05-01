@@ -23,4 +23,14 @@ class StockLoaded extends StockState {
   List<Object> get props => [stockQuote];
 }
 
-class StockError extends StockState {}
+class StockError extends StockState {
+  final String error;
+
+  const StockError({@required this.error});
+
+  @override
+  List<Object> get props => [error];
+
+  @override
+  String toString() => 'StockError { error: $error }';
+}

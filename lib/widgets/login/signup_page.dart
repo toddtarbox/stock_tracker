@@ -100,7 +100,7 @@ class _SignUpPageState extends State<SignUpPage> {
           return Form(
             key: _formKey,
             child: Center(
-              child: Container (
+              child: Container(
                 width: 350,
                 height: 500,
                 child: Card(
@@ -134,7 +134,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             textInputAction: TextInputAction.next,
                             onFieldSubmitted: (value) {
                               _emailFocus.unfocus();
-                              FocusScope.of(context).requestFocus(_usernameFocus);
+                              FocusScope.of(context)
+                                  .requestFocus(_usernameFocus);
                             },
                             validator: validateEmail,
                           ),
@@ -145,7 +146,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             textInputAction: TextInputAction.next,
                             onFieldSubmitted: (value) {
                               _usernameFocus.unfocus();
-                              FocusScope.of(context).requestFocus(_passwordFocus);
+                              FocusScope.of(context)
+                                  .requestFocus(_passwordFocus);
                             },
                             validator: (value) {
                               if (value.isEmpty) {
@@ -163,18 +165,21 @@ class _SignUpPageState extends State<SignUpPage> {
                             obscureText: true,
                             onFieldSubmitted: (value) {
                               _passwordFocus.unfocus();
-                              FocusScope.of(context).requestFocus(_confirmPasswordFocus);
+                              FocusScope.of(context)
+                                  .requestFocus(_confirmPasswordFocus);
                             },
                             validator: (value) {
                               if (value.isEmpty) {
                                 return 'Please enter a password';
                               } else {
-                                return validatePassword(value, _confirmPasswordController.text);
+                                return validatePassword(
+                                    value, _confirmPasswordController.text);
                               }
                             },
                           ),
                           TextFormField(
-                            decoration: InputDecoration(labelText: 'Confirm Password'),
+                            decoration:
+                                InputDecoration(labelText: 'Confirm Password'),
                             controller: _confirmPasswordController,
                             focusNode: _confirmPasswordFocus,
                             textInputAction: TextInputAction.go,
@@ -186,7 +191,8 @@ class _SignUpPageState extends State<SignUpPage> {
                               if (value.isEmpty) {
                                 return 'Please confirm your password';
                               } else {
-                                return validatePassword(_passwordController.text, value);
+                                return validatePassword(
+                                    _passwordController.text, value);
                               }
                             },
                           ),
@@ -200,13 +206,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                   }
                                 }
                               },
-                              child : Text('Sign Up'),
+                              child: Text('Sign Up'),
                             ),
                           ),
                         ],
                       ),
                       Container(
-                        child: state is SignUpLoading ? LoadingIndicator() : null,
+                        child:
+                            state is SignUpLoading ? LoadingIndicator() : null,
                       ),
                     ],
                   ),

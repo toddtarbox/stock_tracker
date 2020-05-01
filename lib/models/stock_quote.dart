@@ -9,6 +9,7 @@ class StockQuote extends Equatable {
 
   final StockIntraDay stockIntraDay;
   StockHistoric stockHistoric;
+  StockNews stockNews;
 
   StockQuote(
       {this.name,

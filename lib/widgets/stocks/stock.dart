@@ -175,31 +175,43 @@ class _StockState extends State<Stock> {
     return Text(stockQuote.latestPrice.toString() + stockQuote.getChangedText(),
         style: TextStyle(
             fontSize: 24,
-            fontWeight: FontWeight.w200,
+            fontWeight: FontWeight.w300,
             color: stockQuote.isPositiveChange() ? Colors.green : Colors.red));
   }
 
   Widget _renderNews(BuildContext context, StockQuote stockQuote) {
+    List<Widget> widgets = [
+      Text(
+        'Recent News',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+        ),
+      ),
+    ];
+    widgets += stockQuote.stockNews.newsEntries
+        .map((newsEntry) => Padding(
+            padding: EdgeInsets.all(10),
+            child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                    text: newsEntry.headline +
+                        '\n' +
+                        '(Source: ${newsEntry.source})',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () async {
+                        await launch(newsEntry.link);
+                      }))))
+        .toList();
     return Card(
         child: Padding(
             padding: EdgeInsets.all(20),
             child: Column(
-              children: stockQuote.stockNews.newsEntries
-                  .map((newsEntry) => Padding(
-                      padding: EdgeInsets.all(10),
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                          text: TextSpan(
-                              text: newsEntry.headline + '\n' + '(Source: ${newsEntry.source})',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () async {
-                                  await launch(newsEntry.link);
-                                }))))
-                  .toList(),
+              children: widgets,
             )));
   }
 
@@ -213,7 +225,7 @@ class _StockState extends State<Stock> {
               'Intra Day',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w200,
+                fontWeight: FontWeight.w300,
               ),
             ),
             SizedBox(
@@ -257,7 +269,7 @@ class _StockState extends State<Stock> {
             'Historic (3 Month)',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w200,
+              fontWeight: FontWeight.w300,
             ),
           ),
           SizedBox(

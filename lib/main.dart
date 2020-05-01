@@ -12,7 +12,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load the secrets into memory
-  Secrets secrets = await SecretLoader(secretPath: 'assets/secrets.json').load();
+  Secrets secrets =
+      await SecretLoader(secretPath: 'assets/secrets.json').load();
 
   BlocSupervisor.delegate = SimpleBlocDelegate();
 
@@ -23,5 +24,11 @@ void main() async {
     ),
   );
 
-  runApp(App(stockRepository: stockRepository));
+  final UserRepository userRepository = UserRepository(
+    userApiClient: UserApiClient(
+      httpClient: Client(),
+    ),
+  );
+
+  runApp(App(userRepository: userRepository, stockRepository: stockRepository));
 }

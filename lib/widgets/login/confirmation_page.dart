@@ -18,6 +18,7 @@ class ConfirmationPage extends StatefulWidget {
 
 class _ConfirmationPageState extends State<ConfirmationPage> {
   SignUpConfirmationBloc _signUpConfirmationBloc;
+  // ignore: close_sinks
   AuthenticationBloc _authenticationBloc;
 
   UserRepository get _userRepository => widget.userRepository;
@@ -121,7 +122,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
   @override
   void dispose() {
     _signUpConfirmationBloc.close();
-    _authenticationBloc.close();
     super.dispose();
   }
 }

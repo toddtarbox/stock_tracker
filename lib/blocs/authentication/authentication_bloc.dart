@@ -21,10 +21,18 @@ class AuthenticationBloc
     AuthenticationEvent event,
   ) async* {
     if (event is AppStarted) {
+      // Give splash screen some time to display
+      await Future.delayed(Duration(seconds: 3));
+
+      // Show the login screen
+      yield AuthenticationUnauthenticated();
+
+      // Will prompt for biometrics if necessary
       await userRepository.init();
       final bool isAuthenticated = await userRepository.checkAuthenticated();
 
       if (isAuthenticated) {
+        yield AuthenticationLoading();
         yield AuthenticationAuthenticated();
       } else {
         yield AuthenticationUnauthenticated();
@@ -38,8 +46,8 @@ class AuthenticationBloc
 
     if (event is LoggedOut) {
       yield AuthenticationLoading();
-      await userRepository.signOut();
       yield AuthenticationUnauthenticated();
+      await userRepository.signOut();
     }
   }
 }

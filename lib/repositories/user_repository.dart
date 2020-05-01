@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
@@ -8,49 +7,11 @@ import 'package:amazon_cognito_identity_dart/cognito.dart';
 
 import 'package:stocktracker/models/models.dart';
 import 'package:stocktracker/repositories/repositories.dart';
+import 'package:stocktracker/services/encrypted_auth_storage_service.dart';
 
 // Setup AWS User Pool Id & Client Id settings here:
 const _awsUserPoolId = 'us-east-2_TzvJJcJUp';
 const _awsClientId = '19qmv49jfbr7jfhojgoc71c2oc';
-
-/// Extend CognitoStorage with Shared Preferences to persist account
-/// login sessions
-class Storage extends CognitoStorage {
-  SharedPreferences _prefs;
-  Storage(this._prefs);
-
-  @override
-  Future getItem(String key) async {
-    String item;
-    try {
-      item = json.decode(_prefs.getString(key));
-    } catch (e) {
-      return null;
-    }
-    return item;
-  }
-
-  @override
-  Future setItem(String key, value) async {
-    _prefs.setString(key, json.encode(value));
-    return getItem(key);
-  }
-
-  @override
-  Future removeItem(String key) async {
-    final item = getItem(key);
-    if (item != null) {
-      _prefs.remove(key);
-      return item;
-    }
-    return null;
-  }
-
-  @override
-  Future<void> clear() async {
-    _prefs.clear();
-  }
-}
 
 class UserRepository {
   final UserApiClient userApiClient;
@@ -63,18 +24,42 @@ class UserRepository {
   UserRepository({@required this.userApiClient})
       : assert(userApiClient != null);
 
-  /// Initiate user session from local storage if present
-  Future<bool> init() async {
+  Future<bool> _isBioAuthConfigured() async {
     final prefs = await SharedPreferences.getInstance();
-    final storage = new Storage(prefs);
-    _userPool.storage = storage;
+    return prefs.containsKey('bio-auth-configured') && prefs.getBool('bio-auth-configured');
+  }
 
-    _cognitoUser = await _userPool.getCurrentUser();
-    if (_cognitoUser == null) {
-      return false;
+  Future _setBioAuthConfigured(bool configured) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.setBool('bio-auth-configured', configured);
+  }
+
+  /// Initiate user session from encrypted storage, if present
+  Future<bool> init() async {
+    final isBiometricAuthConfigured = await _isBioAuthConfigured();
+    if (isBiometricAuthConfigured) {
+      EncryptedAuthStorageService encryptedAuthStorageService = EncryptedAuthStorageService();
+      String savedUsernamePassword = await encryptedAuthStorageService.readString('username:password');
+      if (savedUsernamePassword != null) {
+        final String savedUsername = savedUsernamePassword.split(':')[0];
+        final String savedPassword = savedUsernamePassword.split(':')[1];
+        try {
+          await authenticate(username: savedUsername, password: savedPassword);
+        } on CognitoClientException catch (e) {
+          return false;
+        }
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      _cognitoUser = await _userPool.getCurrentUser();
+      if (_cognitoUser == null) {
+        return false;
+      }
+      _session = await _cognitoUser.getSession();
+      return _session.isValid();
     }
-    _session = await _cognitoUser.getSession();
-    return _session.isValid();
   }
 
   /// Get existing user from session with his/her attributes
@@ -99,7 +84,7 @@ class UserRepository {
     @required String password,
   }) async {
     _cognitoUser =
-        new CognitoUser(username, _userPool, storage: _userPool.storage);
+        new CognitoUser(username, _userPool);
 
     final authDetails = new AuthenticationDetails(
       username: username,
@@ -127,13 +112,25 @@ class UserRepository {
     user.confirmed = isConfirmed;
     user.hasAccess = true;
 
+    final isBiometricAuthConfigured = await _isBioAuthConfigured();
+    if (!isBiometricAuthConfigured) {
+      EncryptedAuthStorageService encryptedAuthStorageService = EncryptedAuthStorageService();
+      try {
+        await encryptedAuthStorageService.writeString(
+            'username:password', username + ":" + password);
+      } on Exception catch (e) {
+        // User canceled biometric prompt, ignore
+      }
+      await _setBioAuthConfigured(true);
+    }
+
     return user;
   }
 
   /// Confirm user's account with confirmation code sent to email
   Future<bool> confirmAccount(String username, String confirmationCode) async {
     _cognitoUser =
-        new CognitoUser(username, _userPool, storage: _userPool.storage);
+        new CognitoUser(username, _userPool);
 
     return await _cognitoUser.confirmRegistration(confirmationCode);
   }
@@ -141,7 +138,7 @@ class UserRepository {
   /// Resend confirmation code to user's email
   Future<void> resendConfirmationCode(String email) async {
     _cognitoUser =
-        new CognitoUser(email, _userPool, storage: _userPool.storage);
+        new CognitoUser(email, _userPool);
     await _cognitoUser.resendConfirmationCode();
   }
 
@@ -182,7 +179,8 @@ class UserRepository {
       await credentials.resetAwsCredentials();
     }
     if (_cognitoUser != null) {
-      return _cognitoUser.signOut();
+      await _cognitoUser.signOut();
     }
+    _setBioAuthConfigured(false);
   }
 }

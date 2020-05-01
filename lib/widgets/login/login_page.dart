@@ -19,12 +19,16 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   LoginBloc _loginBloc;
+  // ignore: close_sinks
   AuthenticationBloc _authenticationBloc;
 
   UserRepository get _userRepository => widget.userRepository;
 
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  final FocusNode _usernameFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
 
   @override
   void initState() {
@@ -88,11 +92,17 @@ class _LoginPageState extends State<LoginPage> {
                         textInputAction: TextInputAction.next,
                         decoration: InputDecoration(labelText: 'Username'),
                         controller: _usernameController,
+                        focusNode: _usernameFocus,
+                        onFieldSubmitted: (value) {
+                          _usernameFocus.unfocus();
+                          FocusScope.of(context).requestFocus(_passwordFocus);
+                        },
                       ),
                       TextFormField(
                         textInputAction: TextInputAction.go,
                         decoration: InputDecoration(labelText: 'Password'),
                         controller: _passwordController,
+                        focusNode: _passwordFocus,
                         obscureText: true,
                         onFieldSubmitted: (value) {
                           submit();
@@ -137,7 +147,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void dispose() {
     _loginBloc.close();
-    _authenticationBloc.close();
     super.dispose();
   }
 }

@@ -63,6 +63,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Text('Login'),
       ),
+      backgroundColor: Colors.grey,
       body: BlocBuilder<LoginBloc, LoginState>(
         bloc: _loginBloc,
         builder: (
@@ -81,55 +82,63 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           return Form(
-            child: Padding(
-              padding: EdgeInsets.all(50),
-              child: Stack(
-                children: [
-                  ListView(
+            child: Center(
+              child: Container (
+                width: 300,
+                height: 300,
+                child: Card(
+                  child: Stack(
                     children: [
-                      TextFormField(
-                        autofocus: true,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(labelText: 'Username'),
-                        controller: _usernameController,
-                        focusNode: _usernameFocus,
-                        onFieldSubmitted: (value) {
-                          _usernameFocus.unfocus();
-                          FocusScope.of(context).requestFocus(_passwordFocus);
-                        },
+                      ListView(
+                        padding: EdgeInsets.all(20),
+                        children: [
+                          Container(
+                            child: TextFormField(
+                              autofocus: true,
+                              textInputAction: TextInputAction.next,
+                              decoration: InputDecoration(labelText: 'Username'),
+                              controller: _usernameController,
+                              focusNode: _usernameFocus,
+                              onFieldSubmitted: (value) {
+                                _usernameFocus.unfocus();
+                                FocusScope.of(context).requestFocus(_passwordFocus);
+                              },
+                            ),
+                          ),
+                          TextFormField(
+                            textInputAction: TextInputAction.go,
+                            decoration: InputDecoration(labelText: 'Password'),
+                            controller: _passwordController,
+                            focusNode: _passwordFocus,
+                            obscureText: true,
+                            onFieldSubmitted: (value) {
+                              submit();
+                            },
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(20),
+                            child: RaisedButton(
+                              onPressed: state is! LoginLoading ? submit : null,
+                              child: Text('Login'),
+                            ),
+                          ),
+                          new FlatButton(
+                            child: new Text(
+                              'Sign up',
+                              style: new TextStyle(color: Colors.blue),
+                            ),
+                            onPressed: () {
+                              signup(context);
+                            },
+                          ),
+                        ],
                       ),
-                      TextFormField(
-                        textInputAction: TextInputAction.go,
-                        decoration: InputDecoration(labelText: 'Password'),
-                        controller: _passwordController,
-                        focusNode: _passwordFocus,
-                        obscureText: true,
-                        onFieldSubmitted: (value) {
-                          submit();
-                        },
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(50),
-                        child: RaisedButton(
-                          onPressed: state is! LoginLoading ? submit : null,
-                          child: Text('Login'),
-                        ),
-                      ),
-                      new FlatButton(
-                        child: new Text(
-                          'Sign up',
-                          style: new TextStyle(color: Colors.blue),
-                        ),
-                        onPressed: () {
-                          signup(context);
-                        },
+                      Container(
+                        child: state is LoginLoading ? LoadingIndicator() : null,
                       ),
                     ],
                   ),
-                  Container(
-                    child: state is LoginLoading ? LoadingIndicator() : null,
-                  ),
-                ],
+                ),
               ),
             ),
           );

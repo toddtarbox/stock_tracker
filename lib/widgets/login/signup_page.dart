@@ -24,15 +24,19 @@ class _SignUpPageState extends State<SignUpPage> {
 
   UserRepository get _userRepository => widget.userRepository;
 
+  final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   final FocusNode _nameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _usernameFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
+  final FocusNode _confirmPasswordFocus = FocusNode();
 
   @override
   void initState() {
@@ -59,6 +63,7 @@ class _SignUpPageState extends State<SignUpPage> {
       appBar: AppBar(
         title: Text('Sign Up'),
       ),
+      backgroundColor: Colors.grey,
       body: BlocBuilder<SignUpBloc, SignUpState>(
         bloc: _signUpBloc,
         builder: (
@@ -95,68 +100,119 @@ class _SignUpPageState extends State<SignUpPage> {
           }
 
           return Form(
-            child: Padding(
-              padding: EdgeInsets.all(50),
-              child: Stack(
-                children: <Widget>[
-                  ListView(
-                    children: [
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Name'),
-                        controller: _nameController,
-                        focusNode: _nameFocus,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (value) {
-                          _nameFocus.unfocus();
-                          FocusScope.of(context).requestFocus(_emailFocus);
-                        },
+            key: _formKey,
+            child: Center(
+              child: Container (
+                width: 300,
+                height: 500,
+                child: Card(
+                  child: Stack(
+                    children: <Widget>[
+                      ListView(
+                        padding: EdgeInsets.all(20),
+                        children: [
+                          TextFormField(
+                            decoration: InputDecoration(labelText: 'Name'),
+                            controller: _nameController,
+                            focusNode: _nameFocus,
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (value) {
+                              _nameFocus.unfocus();
+                              FocusScope.of(context).requestFocus(_emailFocus);
+                            },
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter your name';
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: 'Email'),
+                            keyboardType: TextInputType.emailAddress,
+                            controller: _emailController,
+                            focusNode: _emailFocus,
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (value) {
+                              _emailFocus.unfocus();
+                              FocusScope.of(context).requestFocus(_usernameFocus);
+                            },
+                            validator: validateEmail,
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: 'Username'),
+                            controller: _usernameController,
+                            focusNode: _usernameFocus,
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (value) {
+                              _usernameFocus.unfocus();
+                              FocusScope.of(context).requestFocus(_passwordFocus);
+                            },
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter a username';
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: 'Password'),
+                            controller: _passwordController,
+                            focusNode: _passwordFocus,
+                            textInputAction: TextInputAction.next,
+                            obscureText: true,
+                            onFieldSubmitted: (value) {
+                              _passwordFocus.unfocus();
+                              FocusScope.of(context).requestFocus(_confirmPasswordFocus);
+                            },
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter a password';
+                              } else {
+                                return validatePassword(value, _confirmPasswordController.text);
+                              }
+                            },
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: 'Confirm Password'),
+                            controller: _confirmPasswordController,
+                            focusNode: _confirmPasswordFocus,
+                            textInputAction: TextInputAction.go,
+                            obscureText: true,
+                            onFieldSubmitted: (value) {
+                              submit();
+                            },
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please confirm your password';
+                              } else {
+                                return validatePassword(_passwordController.text, value);
+                              }
+                            },
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(20),
+                            child: RaisedButton(
+                              onPressed: () {
+                                if (_formKey.currentState.validate()) {
+                                  if (state is! SignUpLoading) {
+                                    submit();
+                                  }
+                                }
+                              },
+                              child : Text('Sign Up'),
+                            ),
+                          ),
+                        ],
                       ),
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Email'),
-                        autovalidate: true,
-                        validator: validateEmail,
-                        keyboardType: TextInputType.emailAddress,
-                        controller: _emailController,
-                        focusNode: _emailFocus,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (value) {
-                          _emailFocus.unfocus();
-                          FocusScope.of(context).requestFocus(_usernameFocus);
-                        },
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Username'),
-                        controller: _usernameController,
-                        focusNode: _usernameFocus,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (value) {
-                          _usernameFocus.unfocus();
-                          FocusScope.of(context).requestFocus(_passwordFocus);
-                        },
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Password'),
-                        controller: _passwordController,
-                        focusNode: _passwordFocus,
-                        textInputAction: TextInputAction.go,
-                        obscureText: true,
-                        onFieldSubmitted: (value) {
-                          submit();
-                        },
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(50),
-                        child: RaisedButton(
-                          onPressed: state is! SignUpLoading ? submit : null,
-                          child: Text('Sign Up'),
-                        ),
+                      Container(
+                        child: state is SignUpLoading ? LoadingIndicator() : null,
                       ),
                     ],
                   ),
-                  Container(
-                    child: state is SignUpLoading ? LoadingIndicator() : null,
-                  ),
-                ],
+                ),
               ),
             ),
           );

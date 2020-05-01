@@ -37,13 +37,6 @@ class UserRepository {
 
   Future _setBioAuthConfigured(bool configured) async {
     final prefs = await SharedPreferences.getInstance();
-
-    if (!configured) {
-      if (await encryptedAuthStorageService.canAuthenticate()) {
-        encryptedAuthStorageService.deleteCredentials();
-      }
-    }
-
     return prefs.setBool('bio-auth-configured', configured);
   }
 
@@ -190,6 +183,6 @@ class UserRepository {
     if (_cognitoUser != null) {
       await _cognitoUser.signOut();
     }
-    _setBioAuthConfigured(false);
+    await _setBioAuthConfigured(false);
   }
 }

@@ -161,9 +161,16 @@ class _StockState extends State<Stock> {
                 children: <Widget>[
                   _renderIntraDayChart(context, stockQuote),
                   _renderHistoricChart(context, stockQuote),
-                  _renderNews(context, stockQuote),
                 ],
               ),
+            ),
+          ],
+        ),
+        Row(
+          children: <Widget>[
+            Container(
+              width: MediaQuery.of(context).size.width,
+              child: _renderNews(context, stockQuote),
             ),
           ],
         ),

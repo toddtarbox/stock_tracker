@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:stocktracker/blocs/blocs.dart';
 import 'package:stocktracker/repositories/repositories.dart';
+import 'package:stocktracker/widgets/widgets.dart';
 
 class ConfirmationPage extends StatefulWidget {
   final UserRepository userRepository;
@@ -46,9 +47,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Enter Confirmation Code'),
-      ),
+      appBar: CommonAppBar(),
       body: BlocBuilder<SignUpConfirmationBloc, SignUpConfirmationState>(
         bloc: _signUpConfirmationBloc,
         builder: (
@@ -102,7 +101,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                 ),
                 Container(
                   child: state is SignUpLoading
-                      ? CircularProgressIndicator()
+                      ? LoadingIndicator()
                       : null,
                 ),
               ],

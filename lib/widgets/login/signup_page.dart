@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:stocktracker/blocs/blocs.dart';
 import 'package:stocktracker/repositories/repositories.dart';
-import 'package:stocktracker/widgets/utils/utils.dart';
+import 'package:stocktracker/utils/utils.dart';
 import 'package:stocktracker/widgets/widgets.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -60,9 +60,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Sign Up'),
-      ),
+      appBar: CommonAppBar(),
       backgroundColor: Colors.grey,
       body: BlocBuilder<SignUpBloc, SignUpState>(
         bloc: _signUpBloc,
@@ -103,13 +101,13 @@ class _SignUpPageState extends State<SignUpPage> {
             key: _formKey,
             child: Center(
               child: Container (
-                width: 300,
+                width: 350,
                 height: 500,
                 child: Card(
                   child: Stack(
                     children: <Widget>[
                       ListView(
-                        padding: EdgeInsets.all(20),
+                        padding: EdgeInsets.all(30),
                         children: [
                           TextFormField(
                             decoration: InputDecoration(labelText: 'Name'),

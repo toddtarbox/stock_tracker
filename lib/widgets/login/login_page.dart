@@ -24,6 +24,8 @@ class _LoginPageState extends State<LoginPage> {
 
   UserRepository get _userRepository => widget.userRepository;
 
+  final _formKey = GlobalKey<FormState>();
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -60,9 +62,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
+      appBar: CommonAppBar(),
       backgroundColor: Colors.grey,
       body: BlocBuilder<LoginBloc, LoginState>(
         bloc: _loginBloc,
@@ -82,15 +82,16 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           return Form(
+            key: _formKey,
             child: Center(
               child: Container (
-                width: 300,
-                height: 300,
+                width: 350,
+                height: 350,
                 child: Card(
                   child: Stack(
                     children: [
                       ListView(
-                        padding: EdgeInsets.all(20),
+                        padding: EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 10),
                         children: [
                           Container(
                             child: TextFormField(
@@ -103,6 +104,13 @@ class _LoginPageState extends State<LoginPage> {
                                 _usernameFocus.unfocus();
                                 FocusScope.of(context).requestFocus(_passwordFocus);
                               },
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return 'Please enter your username';
+                                } else {
+                                  return null;
+                                }
+                              },
                             ),
                           ),
                           TextFormField(
@@ -114,17 +122,30 @@ class _LoginPageState extends State<LoginPage> {
                             onFieldSubmitted: (value) {
                               submit();
                             },
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return 'Please enter your password';
+                              } else {
+                                return null;
+                              }
+                            },
                           ),
                           Padding(
                             padding: EdgeInsets.all(20),
                             child: RaisedButton(
-                              onPressed: state is! LoginLoading ? submit : null,
+                              onPressed: () {
+                                if (_formKey.currentState.validate()) {
+                                  if (state is! LoginLoading) {
+                                    submit();
+                                  }
+                                }
+                              },
                               child: Text('Login'),
                             ),
                           ),
                           new FlatButton(
                             child: new Text(
-                              'Sign up',
+                              'Sign Up',
                               style: new TextStyle(color: Colors.blue),
                             ),
                             onPressed: () {

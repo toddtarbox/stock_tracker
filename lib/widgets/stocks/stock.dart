@@ -66,7 +66,7 @@ class _StockState extends State<Stock> {
             }
 
             if (state is StockLoading) {
-              return Center(child: CircularProgressIndicator());
+              return LoadingIndicator();
             }
 
             if (state is StockLoaded) {

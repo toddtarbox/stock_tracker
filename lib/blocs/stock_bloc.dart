@@ -28,7 +28,7 @@ class StockBloc extends Bloc<StockEvent, StockState> {
         stock.stockNews = stockNews;
         yield StockLoaded(stockQuote: stock);
       } catch (error) {
-        yield StockError(error: error);
+        yield StockError(error: error.toString());
       }
     }
 

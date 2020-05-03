@@ -36,12 +36,10 @@ class _StockState extends State<Stock> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async => Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MarketSelection(),
-              ),
-            ),
+        onWillPop: () async {
+          resetToMarketSelection(context);
+          return true;
+        },
         child: Scaffold(
           appBar: AppBar(
             title: Text('Stock Tracker'),
@@ -49,14 +47,7 @@ class _StockState extends State<Stock> {
               IconButton(
                 icon: Icon(Icons.search),
                 onPressed: () {
-                  BlocProvider.of<ExchangeSymbolsBloc>(context)
-                      .add(ClearExchange());
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MarketSelection(),
-                    ),
-                  );
+                  resetToMarketSelection(context);
                 },
               ),
               IconButton(
@@ -65,7 +56,7 @@ class _StockState extends State<Stock> {
                   if (await shouldSignOut(context)) {
                     BlocProvider.of<AuthenticationBloc>(context)
                         .add(LoggedOut());
-                    Navigator.pop(context);
+                    Navigator.of(context).popUntil((route) => route.isFirst);
                   }
                 },
               )
@@ -265,6 +256,10 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderHistoricChart(BuildContext context, StockQuote stockQuote) {
+    if (stockQuote.stockHistoric.dailyEntries.length == 0) {
+      return Container();
+    }
+
     return Card(
       child: Padding(
         padding: EdgeInsets.all(20),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stocktracker/blocs/blocs.dart';
+import 'package:stocktracker/widgets/widgets.dart';
 
 String validateEmail(String value) {
   Pattern pattern =
@@ -73,4 +76,15 @@ Future<bool> shouldSignOut(BuildContext context) {
         ),
       ) ??
       false;
+}
+
+void resetToMarketSelection(BuildContext context) {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => MarketSelection(),
+    ),
+  );
+
+  BlocProvider.of<ExchangeSymbolsBloc>(context).add(ClearExchange());
 }

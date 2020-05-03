@@ -24,7 +24,7 @@ class _SymbolSelectionState extends State<SymbolSelection> {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
-          BlocProvider.of<ExchangeSymbolsBloc>(context).add(ClearExchange());
+          resetToMarketSelection(context);
           return true;
         },
         child: Scaffold(
@@ -119,6 +119,7 @@ class _SymbolSelectionState extends State<SymbolSelection> {
                                   child: RaisedButton(
                                     color: Theme.of(context).primaryColor,
                                     onPressed: () {
+                                      BlocProvider.of<StockBloc>(context).add(ClearStock());
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(

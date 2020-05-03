@@ -5,6 +5,11 @@ abstract class StockEvent extends Equatable {
   const StockEvent();
 }
 
+class ClearStock extends StockEvent {
+  @override
+  List<Object> get props => [];
+}
+
 class FetchStock extends StockEvent {
   final String exchange;
   final String symbol;

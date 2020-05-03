@@ -15,6 +15,10 @@ class StockBloc extends Bloc<StockEvent, StockState> {
 
   @override
   Stream<StockState> mapEventToState(StockEvent event) async* {
+    if (event is ClearStock) {
+      yield StockEmpty();
+    }
+
     if (event is FetchStock) {
       yield StockLoading();
       try {

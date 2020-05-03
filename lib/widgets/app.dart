@@ -85,14 +85,7 @@ class _AppState extends State<App> {
             }
 
             if (state is AuthenticationAuthenticated) {
-              onWidgetDidBuild(() {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MarketSelection(),
-                  ),
-                );
-              });
+              return MarketSelection();
             }
 
             return LoadingIndicator();

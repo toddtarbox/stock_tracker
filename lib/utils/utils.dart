@@ -85,6 +85,4 @@ void resetToMarketSelection(BuildContext context) {
       builder: (context) => MarketSelection(),
     ),
   );
-
-  BlocProvider.of<ExchangeSymbolsBloc>(context).add(ClearExchange());
 }

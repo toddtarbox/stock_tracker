@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stocktracker/blocs/blocs.dart';
 
 import 'package:stocktracker/models/models.dart';
 import 'package:stocktracker/utils/utils.dart';
@@ -67,6 +69,7 @@ class _MarketSelectionState extends State<MarketSelection> {
                           child: RaisedButton(
                             color: Theme.of(context).primaryColor,
                             onPressed: () {
+                              BlocProvider.of<ExchangeSymbolsBloc>(context).add(ClearExchange());
                               if (_selectedMarket.key == 'crypto') {
                                 Navigator.push(
                                   context,

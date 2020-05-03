@@ -2,54 +2,72 @@ import 'package:equatable/equatable.dart';
 import 'package:stocktracker/models/models.dart';
 
 class StockQuote extends Equatable {
-  final String name;
+  final String companyName;
   final String symbol;
-  final double openPrice;
+  final double previousClose;
   final double latestPrice;
 
-  final StockIntraDay stockIntraDay;
+  StockIntraDay stockIntraDay;
   StockHistoric stockHistoric;
   StockNews stockNews;
 
   StockQuote(
-      {this.name,
-      this.symbol,
-      this.openPrice,
-      this.latestPrice,
-      this.stockIntraDay});
+      {this.companyName, this.symbol, this.previousClose, this.latestPrice});
 
   @override
-  List<Object> get props => [name, symbol];
+  List<Object> get props => [companyName, symbol];
+
+  String get displayName {
+    if (companyName != null && companyName.isNotEmpty) {
+      return '$companyName ($symbol)';
+    } else {
+      return symbol;
+    }
+  }
 
   bool isPositiveChange() {
-    double change = latestPrice - openPrice;
+    double change = latestPrice - previousClose;
     return change >= 0;
   }
 
-  String getChangedText() {
-    double change = latestPrice - openPrice;
-    return ' (' +
-        change.toStringAsFixed(change.truncateToDouble() == change ? 0 : 2) +
-        ')';
+  String get getChangeText {
+    if (previousClose == 0.0) {
+      return '$latestPrice';
+    } else {
+      double change = latestPrice - previousClose;
+      return '$latestPrice (' +
+          change.toStringAsFixed(change.truncateToDouble() == change ? 0 : 2) +
+          ')';
+    }
   }
 
-  static StockQuote fromJson(dynamic json) {
-    final quoteJson = json['quote'];
-    final intraDayJson = json['intraday-prices'];
+  static StockQuote fromIEXCloudJson(dynamic json) {
+    final companyName = json['companyName'];
+    final symbol = json['symbol'];
 
-    final stockName = quoteJson['companyName'];
-    final stockSymbol = quoteJson['symbol'];
-    final openPrice = quoteJson['previousClose'];
-    final latestPrice = quoteJson['latestPrice'];
+    dynamic previousClose = json['previousClose'];
+    if (previousClose == null) {
+      previousClose = 0.0;
+    } else if (previousClose is String) {
+      previousClose = previousClose.toDouble();
+    } else {
+      previousClose = previousClose.toDouble();
+    }
 
-    final StockIntraDay stockIntraDay = StockIntraDay.fromJson(intraDayJson);
+    dynamic latestPrice = json['latestPrice'];
+    if (latestPrice == null) {
+      latestPrice = 0.0;
+    } else if (latestPrice is String) {
+      latestPrice = double.parse(latestPrice);
+    } else {
+      latestPrice = latestPrice.toDouble();
+    }
 
     StockQuote stockQuote = StockQuote(
-        name: stockName,
-        symbol: stockSymbol,
-        openPrice: openPrice.toDouble(),
-        latestPrice: latestPrice.toDouble(),
-        stockIntraDay: stockIntraDay);
+        companyName: companyName,
+        symbol: symbol,
+        previousClose: previousClose,
+        latestPrice: latestPrice);
 
     return stockQuote;
   }

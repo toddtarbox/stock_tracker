@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stocktracker/utils/utils.dart';
 import 'package:stocktracker/widgets/widgets.dart';
 
 import 'package:stocktracker/blocs/blocs.dart';
@@ -50,9 +51,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   signup(BuildContext context) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
-      new MaterialPageRoute(
+      MaterialPageRoute(
           builder: (context) => new SignUpPage(
                 userRepository: _userRepository,
               )),
@@ -71,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
           LoginState state,
         ) {
           if (state is LoginFailure) {
-            _onWidgetDidBuild(() {
+            onWidgetDidBuild(() {
               Scaffold.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${state.error}'),
@@ -170,12 +171,6 @@ class _LoginPageState extends State<LoginPage> {
         },
       ),
     );
-  }
-
-  void _onWidgetDidBuild(Function callback) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      callback();
-    });
   }
 
   @override

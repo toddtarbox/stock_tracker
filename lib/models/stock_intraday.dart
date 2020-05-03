@@ -14,7 +14,7 @@ class IntraDayEntry extends Equatable {
         close,
       ];
 
-  static IntraDayEntry fromJson(dynamic json) {
+  static IntraDayEntry fromIEXCloudJson(dynamic json) {
     final String date = json['date'];
     final String time = json['minute'];
     final DateTime dateTime = DateTime.parse(date + ' ' + time);
@@ -38,10 +38,10 @@ class StockIntraDay extends Equatable {
   @override
   List<Object> get props => [intraDayEntries];
 
-  static StockIntraDay fromJson(dynamic json) {
+  static StockIntraDay fromIEXCloudJson(dynamic json) {
     StockIntraDay stockIntraDay = StockIntraDay();
     for (dynamic entry in json) {
-      IntraDayEntry intraDayEntry = IntraDayEntry.fromJson(entry);
+      IntraDayEntry intraDayEntry = IntraDayEntry.fromIEXCloudJson(entry);
       if (intraDayEntry != null) {
         stockIntraDay.intraDayEntries.add(intraDayEntry);
       }

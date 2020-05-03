@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:stocktracker/blocs/blocs.dart';
 import 'package:stocktracker/repositories/repositories.dart';
+import 'package:stocktracker/utils/utils.dart';
 import 'package:stocktracker/widgets/widgets.dart';
 
 class ConfirmationPage extends StatefulWidget {
@@ -55,7 +56,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
           SignUpConfirmationState state,
         ) {
           if (state is SignUpConfirmationFailure) {
-            _onWidgetDidBuild(() {
+            onWidgetDidBuild(() {
               Scaffold.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${state.error}'),
@@ -66,7 +67,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
           }
 
           if (state is SignUpConfirmationSuccess) {
-            _onWidgetDidBuild(() {
+            onWidgetDidBuild(() {
               Scaffold.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Account confirmed!'),
@@ -108,12 +109,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
         },
       ),
     );
-  }
-
-  void _onWidgetDidBuild(Function callback) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      callback();
-    });
   }
 
   @override

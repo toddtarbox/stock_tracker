@@ -19,11 +19,15 @@ class StockBloc extends Bloc<StockEvent, StockState> {
       yield StockLoading();
       try {
         final StockQuote stock =
-            await stockRepository.getStockQuote(event.symbol);
+            await stockRepository.getStockQuote(event.exchange, event.symbol);
+        final StockIntraDay stockIntraDay =
+            await stockRepository.getStockIntraDay(event.symbol);
         final StockHistoric stockHistoric =
             await stockRepository.getStockHistoric(event.symbol);
         final StockNews stockNews =
             await stockRepository.getStockNews(event.symbol);
+
+        stock.stockIntraDay = stockIntraDay;
         stock.stockHistoric = stockHistoric;
         stock.stockNews = stockNews;
         yield StockLoaded(stockQuote: stock);
@@ -36,11 +40,15 @@ class StockBloc extends Bloc<StockEvent, StockState> {
       yield StockLoading();
       try {
         final StockQuote stock =
-            await stockRepository.getStockQuote(event.symbol);
+            await stockRepository.getStockQuote(event.exchange, event.symbol);
+        final StockIntraDay stockIntraDay =
+            await stockRepository.getStockIntraDay(event.symbol);
         final StockHistoric stockHistoric =
             await stockRepository.getStockHistoric(event.symbol);
         final StockNews stockNews =
             await stockRepository.getStockNews(event.symbol);
+
+        stock.stockIntraDay = stockIntraDay;
         stock.stockHistoric = stockHistoric;
         stock.stockNews = stockNews;
         yield StockLoaded(stockQuote: stock);

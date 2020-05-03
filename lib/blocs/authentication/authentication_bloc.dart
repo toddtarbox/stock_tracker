@@ -22,7 +22,7 @@ class AuthenticationBloc
   ) async* {
     if (event is AppStarted) {
       // Give splash screen some time to display
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(Duration(seconds: 1));
 
       // Show the login screen
       yield AuthenticationUnauthenticated();
@@ -45,7 +45,6 @@ class AuthenticationBloc
     }
 
     if (event is LoggedOut) {
-      yield AuthenticationLoading();
       yield AuthenticationUnauthenticated();
       await userRepository.signOut();
     }

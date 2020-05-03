@@ -15,7 +15,7 @@ class NewsEntry extends Equatable {
         link,
       ];
 
-  static NewsEntry fromJson(dynamic json) {
+  static NewsEntry fromIEXCloudJson(dynamic json) {
     final int date = json['datetime'];
     final DateTime dateTime =
         DateTime.fromMicrosecondsSinceEpoch(date, isUtc: true);
@@ -37,10 +37,10 @@ class StockNews extends Equatable {
   @override
   List<Object> get props => [newsEntries];
 
-  static StockNews fromJson(dynamic json) {
+  static StockNews fromIEXCloudJson(dynamic json) {
     StockNews stockNews = StockNews();
     for (dynamic entry in json) {
-      NewsEntry newsEntry = NewsEntry.fromJson(entry);
+      NewsEntry newsEntry = NewsEntry.fromIEXCloudJson(entry);
       stockNews.newsEntries.add(newsEntry);
     }
 

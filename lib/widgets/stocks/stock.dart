@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stocktracker/utils/utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:stocktracker/models/models.dart';
@@ -11,6 +13,12 @@ import 'package:stocktracker/widgets/widgets.dart';
 import 'package:stocktracker/blocs/blocs.dart';
 
 class Stock extends StatefulWidget {
+  final StockExchange selectedStockExchange;
+  final StockSymbol selectedStockSymbol;
+
+  Stock({this.selectedStockExchange, this.selectedStockSymbol})
+      : assert(selectedStockExchange != null && selectedStockSymbol != null);
+
   State<Stock> createState() => _StockState();
 }
 
@@ -27,77 +35,91 @@ class _StockState extends State<Stock> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Stock Tracker'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () async {
-              final symbol = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => StockSelection(),
-                ),
-              );
-              if (symbol != null) {
-                _historicalChartData = null;
-                BlocProvider.of<StockBloc>(context)
-                    .add(FetchStock(symbol: symbol));
-              }
-            },
+    return WillPopScope(
+        onWillPop: () async => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MarketSelection(),
+              ),
+            ),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('Stock Tracker'),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  BlocProvider.of<ExchangeSymbolsBloc>(context)
+                      .add(ClearExchange());
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MarketSelection(),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.exit_to_app),
+                onPressed: () async {
+                  if (await shouldSignOut(context)) {
+                    BlocProvider.of<AuthenticationBloc>(context)
+                        .add(LoggedOut());
+                    Navigator.pop(context);
+                  }
+                },
+              )
+            ],
           ),
-          IconButton(
-            icon: Icon(Icons.exit_to_app),
-            onPressed: () async {
-              BlocProvider.of<AuthenticationBloc>(context).add(LoggedOut());
-            },
-          )
-        ],
-      ),
-      body: Center(
-        child: BlocConsumer<StockBloc, StockState>(
-          listener: (context, state) {
-            if (state is StockLoaded) {
-              _refreshCompleter?.complete();
-              _refreshCompleter = Completer();
-            }
-          },
-          builder: (context, state) {
-            if (state is StockEmpty) {
-              return Center(child: Text('Please Select a Symbol'));
-            }
+          body: Center(
+            child: BlocConsumer<StockBloc, StockState>(
+              listener: (context, state) {
+                if (state is StockLoaded) {
+                  _refreshCompleter?.complete();
+                  _refreshCompleter = Completer();
+                }
+              },
+              builder: (context, state) {
+                if (state is StockEmpty) {
+                  onWidgetDidBuild(() {
+                    BlocProvider.of<StockBloc>(context).add(FetchStock(
+                        exchange: widget.selectedStockExchange.exchange,
+                        symbol: widget.selectedStockSymbol.symbol));
+                  });
+                  return LoadingIndicator();
+                }
 
-            if (state is StockLoading) {
-              return LoadingIndicator();
-            }
+                if (state is StockLoading) {
+                  return LoadingIndicator();
+                }
 
-            if (state is StockLoaded) {
-              final stockQuote = state.stockQuote;
+                if (state is StockLoaded) {
+                  final stockQuote = state.stockQuote;
 
-              return RefreshIndicator(
-                  onRefresh: () {
-                    BlocProvider.of<StockBloc>(context)
-                        .add(RefreshStock(symbol: state.stockQuote.symbol));
-                    return _refreshCompleter.future;
-                  },
-                  child: MediaQuery.of(context).size.width < 600
-                      ? _renderPortrait(context, stockQuote)
-                      : _renderLandscape(context, stockQuote));
-            }
+                  return RefreshIndicator(
+                      onRefresh: () {
+                        BlocProvider.of<StockBloc>(context).add(RefreshStock(
+                            exchange: widget.selectedStockExchange.exchange,
+                            symbol: state.stockQuote.symbol));
+                        return _refreshCompleter.future;
+                      },
+                      child: MediaQuery.of(context).size.width < 600
+                          ? _renderPortrait(context, stockQuote)
+                          : _renderLandscape(context, stockQuote));
+                }
 
-            if (state is StockError) {
-              return Text(
-                "We're sorry. We could not find that symbol.",
-                style: TextStyle(color: Colors.red),
-              );
-            }
+                if (state is StockError) {
+                  return Text(
+                    "We're sorry. We could not find that symbol.",
+                    style: TextStyle(color: Colors.red),
+                  );
+                }
 
-            return null;
-          },
-        ),
-      ),
-    );
+                return null;
+              },
+            ),
+          ),
+        ));
   }
 
   Widget _renderPortrait(BuildContext context, StockQuote stockQuote) {
@@ -106,11 +128,16 @@ class _StockState extends State<Stock> {
         Padding(
           padding: EdgeInsets.only(top: 50.0, bottom: 10.0),
           child: Center(
-            child: Text(
-              stockQuote.name,
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+            child: Padding(
+              padding: EdgeInsets.only(left: 20, right: 20),
+              child: AutoSizeText(
+                stockQuote.displayName,
+                maxLines: 2,
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -138,10 +165,12 @@ class _StockState extends State<Stock> {
               child: Column(
                 children: <Widget>[
                   Padding(
-                    padding: EdgeInsets.only(top: 50.0, bottom: 10.0),
+                    padding:
+                        EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
                     child: Center(
-                      child: Text(
-                        stockQuote.name,
+                      child: AutoSizeText(
+                        stockQuote.displayName,
+                        maxLines: 2,
                         style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
@@ -179,50 +208,18 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderQuote(BuildContext context, StockQuote stockQuote) {
-    return Text(stockQuote.latestPrice.toString() + stockQuote.getChangedText(),
+    return Text(stockQuote.getChangeText,
         style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w300,
             color: stockQuote.isPositiveChange() ? Colors.green : Colors.red));
   }
 
-  Widget _renderNews(BuildContext context, StockQuote stockQuote) {
-    List<Widget> widgets = [
-      Text(
-        'Recent News',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w300,
-        ),
-      ),
-    ];
-    widgets += stockQuote.stockNews.newsEntries
-        .map((newsEntry) => Padding(
-            padding: EdgeInsets.all(10),
-            child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                    text: newsEntry.headline +
-                        '\n' +
-                        '(Source: ${newsEntry.source})',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        await launch(newsEntry.link);
-                      }))))
-        .toList();
-    return Card(
-        child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              children: widgets,
-            )));
-  }
-
   Widget _renderIntraDayChart(BuildContext context, StockQuote stockQuote) {
+    if (stockQuote.stockIntraDay.intraDayEntries.length == 0) {
+      return Container();
+    }
+
     return Card(
       child: Padding(
         padding: EdgeInsets.all(20),
@@ -238,7 +235,7 @@ class _StockState extends State<Stock> {
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.3,
               child: charts.TimeSeriesChart(
-                _getIntradayChartData(stockQuote),
+                _getIntraDayChartData(stockQuote),
                 behaviors: [
                   charts.PanAndZoomBehavior(),
                 ],
@@ -291,9 +288,50 @@ class _StockState extends State<Stock> {
     );
   }
 
-  List<charts.Series<IntraDayEntry, DateTime>> _getIntradayChartData(
+  Widget _renderNews(BuildContext context, StockQuote stockQuote) {
+    if (stockQuote.stockNews.newsEntries.length == 0) {
+      return Container();
+    }
+
+    List<Widget> widgets = [
+      Text(
+        'Recent News',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+        ),
+      ),
+    ];
+    widgets += _getStockNewsData(stockQuote)
+        .map((newsEntry) => Padding(
+            padding: EdgeInsets.all(10),
+            child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                    text: newsEntry.headline +
+                        '\n' +
+                        '(Source: ${newsEntry.source})',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () async {
+                        await launch(newsEntry.link);
+                      }))))
+        .toList();
+    return Card(
+        child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: widgets,
+            )));
+  }
+
+  List<charts.Series<IntraDayEntry, DateTime>> _getIntraDayChartData(
       StockQuote stockQuote) {
     final intraDayChartData = List<charts.Series<IntraDayEntry, DateTime>>();
+
     intraDayChartData.add(
       charts.Series(
         domainFn: (IntraDayEntry entry, _) => entry.date,
@@ -313,15 +351,26 @@ class _StockState extends State<Stock> {
     }
 
     _historicalChartData = List<charts.Series<DayEntry, DateTime>>();
-    _historicalChartData.add(
-      charts.Series(
-        domainFn: (DayEntry entry, _) => entry.date,
-        measureFn: (DayEntry entry, _) => entry.close,
-        id: 'Historic Chart',
-        data: stockQuote.stockHistoric.dailyEntries,
-      ),
-    );
+
+    if (stockQuote.stockHistoric != null) {
+      _historicalChartData.add(
+        charts.Series(
+          domainFn: (DayEntry entry, _) => entry.date,
+          measureFn: (DayEntry entry, _) => entry.close,
+          id: 'Historic Chart',
+          data: stockQuote.stockHistoric.dailyEntries,
+        ),
+      );
+    }
 
     return _historicalChartData;
+  }
+
+  List<NewsEntry> _getStockNewsData(StockQuote stockQuote) {
+    if (stockQuote.stockNews != null) {
+      return stockQuote.stockNews.newsEntries;
+    } else {
+      return null;
+    }
   }
 }

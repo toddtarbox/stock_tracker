@@ -12,7 +12,7 @@ class DayEntry extends Equatable {
         close,
       ];
 
-  static DayEntry fromJson(dynamic json) {
+  static DayEntry fromIEXCloudJson(dynamic json) {
     final String date = json['date'];
     final DateTime dateTime = DateTime.parse(date);
 
@@ -33,10 +33,10 @@ class StockHistoric extends Equatable {
   @override
   List<Object> get props => [dailyEntries];
 
-  static StockHistoric fromJson(dynamic json) {
+  static StockHistoric fromIEXCloudJson(dynamic json) {
     StockHistoric stockHistoric = StockHistoric();
     for (dynamic entry in json) {
-      DayEntry dayEntry = DayEntry.fromJson(entry);
+      DayEntry dayEntry = DayEntry.fromIEXCloudJson(entry);
       if (dayEntry != null) {
         stockHistoric.dailyEntries.add(dayEntry);
       }

@@ -69,7 +69,7 @@ class _SignUpPageState extends State<SignUpPage> {
           SignUpState state,
         ) {
           if (state is SignUpFailure) {
-            _onWidgetDidBuild(() {
+            onWidgetDidBuild(() {
               Scaffold.of(context).showSnackBar(
                 SnackBar(
                   content: Text('${state.error}'),
@@ -80,7 +80,7 @@ class _SignUpPageState extends State<SignUpPage> {
           }
 
           if (state is SignUpSuccess) {
-            _onWidgetDidBuild(() {
+            onWidgetDidBuild(() {
               Scaffold.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Thanks for signing up!'),
@@ -89,8 +89,8 @@ class _SignUpPageState extends State<SignUpPage> {
               );
               Navigator.pushReplacement(
                 context,
-                new MaterialPageRoute(
-                    builder: (context) => new ConfirmationPage(
+                MaterialPageRoute(
+                    builder: (context) => ConfirmationPage(
                           userRepository: _userRepository,
                         )),
               );
@@ -224,12 +224,6 @@ class _SignUpPageState extends State<SignUpPage> {
         },
       ),
     );
-  }
-
-  void _onWidgetDidBuild(Function callback) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      callback();
-    });
   }
 
   @override

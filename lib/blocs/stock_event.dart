@@ -6,19 +6,23 @@ abstract class StockEvent extends Equatable {
 }
 
 class FetchStock extends StockEvent {
+  final String exchange;
   final String symbol;
 
-  const FetchStock({@required this.symbol}) : assert(symbol != null);
+  const FetchStock({@required this.symbol, @required this.exchange})
+      : assert(symbol != null && exchange != null);
 
   @override
-  List<Object> get props => [symbol];
+  List<Object> get props => [exchange, symbol];
 }
 
 class RefreshStock extends StockEvent {
+  final String exchange;
   final String symbol;
 
-  const RefreshStock({@required this.symbol}) : assert(symbol != null);
+  const RefreshStock({@required this.symbol, @required this.exchange})
+      : assert(symbol != null && exchange != null);
 
   @override
-  List<Object> get props => [symbol];
+  List<Object> get props => [exchange, symbol];
 }

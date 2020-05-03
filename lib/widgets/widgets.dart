@@ -5,5 +5,7 @@ export 'login/signup_page.dart';
 export 'login/splash_page.dart';
 export 'common/app_bar.dart';
 export 'common/loading_indicator.dart';
+export 'stocks/market_selection.dart';
+export 'stocks/exchange_selection.dart';
 export 'stocks/stock.dart';
-export 'stocks/stock_selection.dart';
+export 'stocks/symbol_selection.dart';

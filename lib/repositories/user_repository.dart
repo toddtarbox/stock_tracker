@@ -5,8 +5,8 @@ import 'package:meta/meta.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:amazon_cognito_identity_dart/cognito.dart';
 
+import 'package:stocktracker/clients/clients.dart';
 import 'package:stocktracker/models/models.dart';
-import 'package:stocktracker/repositories/repositories.dart';
 import 'package:stocktracker/services/encrypted_auth_storage_service.dart';
 
 // Setup AWS User Pool Id & Client Id settings here:

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:stocktracker/blocs/blocs.dart';
 import 'package:stocktracker/repositories/repositories.dart';
+import 'package:stocktracker/utils/utils.dart';
 import 'package:stocktracker/widgets/widgets.dart';
 
 class App extends StatefulWidget {
@@ -19,6 +20,8 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   AuthenticationBloc _authenticationBloc;
+  ExchangesBloc _exchangesBloc;
+  ExchangeSymbolsBloc _exchangeSymbolsBloc;
   StockBloc _stockBloc;
 
   UserRepository get _userRepository => widget.userRepository;
@@ -29,6 +32,9 @@ class _AppState extends State<App> {
     _authenticationBloc = AuthenticationBloc(userRepository: _userRepository);
     _authenticationBloc.add(AppStarted());
 
+    _exchangesBloc = ExchangesBloc(stockRepository: _stockRepository);
+    _exchangeSymbolsBloc =
+        ExchangeSymbolsBloc(stockRepository: _stockRepository);
     _stockBloc = StockBloc(stockRepository: _stockRepository);
 
     super.initState();
@@ -36,6 +42,8 @@ class _AppState extends State<App> {
 
   @override
   void dispose() {
+    _exchangesBloc.close();
+    _exchangeSymbolsBloc.close();
     _stockBloc.close();
     _authenticationBloc.close();
     super.dispose();
@@ -47,6 +55,12 @@ class _AppState extends State<App> {
       providers: [
         BlocProvider<AuthenticationBloc>(
           create: (BuildContext context) => _authenticationBloc,
+        ),
+        BlocProvider<ExchangesBloc>(
+          create: (context) => _exchangesBloc,
+        ),
+        BlocProvider<ExchangeSymbolsBloc>(
+          create: (context) => _exchangeSymbolsBloc,
         ),
         BlocProvider<StockBloc>(
           create: (context) => _stockBloc,
@@ -71,10 +85,17 @@ class _AppState extends State<App> {
             }
 
             if (state is AuthenticationAuthenticated) {
-              return Stock();
+              onWidgetDidBuild(() {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MarketSelection(),
+                  ),
+                );
+              });
             }
 
-            return null;
+            return LoadingIndicator();
           },
         ),
       ),

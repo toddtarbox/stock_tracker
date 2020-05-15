@@ -108,11 +108,14 @@ class _ExchangeSelectionState extends State<ExchangeSelection> {
                               child: RaisedButton(
                                 color: Theme.of(context).primaryColor,
                                 onPressed: () {
+                                  BlocProvider.of<ExchangeSymbolsBloc>(context)
+                                      .add(ClearExchange());
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                        builder: (context) => SymbolSelection(
-                                            selectedExchange: _selectedExchange)),
+                                    SlideLeftRoute(
+                                        page: SymbolSelection(
+                                            selectedExchange:
+                                                _selectedExchange)),
                                   );
                                 },
                                 child: Text('Next'),

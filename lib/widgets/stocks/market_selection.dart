@@ -13,16 +13,16 @@ class MarketSelection extends StatefulWidget {
 
 class _MarketSelectionState extends State<MarketSelection> {
   static List<StockMarket> availableMarkets = [
-    StockMarket(name: 'Equities', key: 'equities'),
+    StockMarket(name: 'Stocks', key: 'stocks'),
     StockMarket(name: 'Cryptocurrency', key: 'crypto'),
   ];
 
   StockMarket _selectedMarket = availableMarkets[0];
 
-  final StockExchange _cryptExchange = StockExchange(
+  final StockExchange _cryptoExchange = StockExchange(
       exchange: 'crypto',
       region: '',
-      description: 'Crypt Exchange',
+      description: 'Crypto Exchange',
       mic: '',
       exchangeSuffix: '');
 
@@ -69,20 +69,19 @@ class _MarketSelectionState extends State<MarketSelection> {
                           child: RaisedButton(
                             color: Theme.of(context).primaryColor,
                             onPressed: () {
-                              BlocProvider.of<ExchangeSymbolsBloc>(context).add(ClearExchange());
+                              BlocProvider.of<ExchangeSymbolsBloc>(context)
+                                  .add(ClearExchange());
                               if (_selectedMarket.key == 'crypto') {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => SymbolSelection(
-                                          selectedExchange: _cryptExchange)),
+                                          selectedExchange: _cryptoExchange)),
                                 );
                               } else {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExchangeSelection()),
+                                  SlideLeftRoute(page: ExchangeSelection()),
                                 );
                               }
                             },

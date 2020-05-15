@@ -9,10 +9,16 @@ import 'package:stocktracker/models/stock_historic.dart';
 import 'package:stocktracker/secrets.dart';
 
 class IEXCloudStockApiClient implements StockApiClient {
+//  static const String baseExchangesUrl =
+//      'https://cloud.iexapis.com/v1/ref-data/exchanges?token=';
   static const String baseExchangesUrl =
-      'https://cloud.iexapis.com/v1/ref-data/exchanges?token=';
+      'https://f28d0a9gqf.execute-api.us-east-2.amazonaws.com/default/exchanges';
+
+//  static const String baseExchangeSymbolsUrl =
+//      'https://cloud.iexapis.com/v1/ref-data/exchange/[exchange]/symbols?token=';
   static const String baseExchangeSymbolsUrl =
-      'https://cloud.iexapis.com/v1/ref-data/exchange/[exchange]/symbols?token=';
+      'https://f28d0a9gqf.execute-api.us-east-2.amazonaws.com/default/exchanges/[exchange]/symbols';
+
   static const String baseQuotelUrl =
       'https://cloud.iexapis.com/v1/stock/[symbol]/quote?token=';
   static const String baseIntraDayUrl =
@@ -38,8 +44,12 @@ class IEXCloudStockApiClient implements StockApiClient {
 
   @override
   Future<List<StockExchange>> fetchExchanges() async {
-    final quoteUrl = baseExchangesUrl + secrets.iexcloudApiKey;
-    final response = await httpClient.get(quoteUrl);
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'x-api-key': secrets.amazonApiKey
+    };
+
+    final response = await httpClient.get(baseExchangesUrl, headers: headers);
 
     if (response.statusCode != 200) {
       throw Exception('Error getting exchanges');
@@ -51,13 +61,12 @@ class IEXCloudStockApiClient implements StockApiClient {
 
   @override
   Future<List<StockSymbol>> fetchExchangeSymbols(String exchange) async {
-    String quoteUrl =
-        baseExchangeSymbolsUrl.replaceAll('[exchange]', exchange) +
-            secrets.iexcloudApiKey;
+    String exchangeSymbolsUrl =
+        baseExchangeSymbolsUrl.replaceAll('[exchange]', exchange);
     if (exchange == 'crypto') {
-      quoteUrl = baseCryptSymbolsUrl + secrets.iexcloudApiKey;
+      exchangeSymbolsUrl = baseCryptSymbolsUrl + secrets.iexcloudApiKey;
     }
-    final response = await httpClient.get(quoteUrl);
+    final response = await httpClient.get(exchangeSymbolsUrl);
 
     if (response.statusCode != 200) {
       throw Exception('Error getting symbols for exchange: ' + exchange);

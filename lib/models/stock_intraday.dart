@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:intl/intl.dart';
 
 class IntraDayEntry extends Equatable {
   final DateTime date;
@@ -27,6 +28,12 @@ class IntraDayEntry extends Equatable {
     }
 
     return IntraDayEntry(date: dateTime, label: label, close: close.toDouble());
+  }
+
+  @override
+  String toString() {
+    var formatter = new DateFormat('MM-dd-yyyy HH:mm a');
+    return formatter.format(date.toLocal()) + " " + close.toString();
   }
 }
 

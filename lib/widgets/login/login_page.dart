@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:stocktracker/utils/utils.dart';
 import 'package:stocktracker/widgets/widgets.dart';
-
 import 'package:stocktracker/blocs/blocs.dart';
 import 'package:stocktracker/repositories/repositories.dart';
 
@@ -51,10 +51,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   signup(BuildContext context) {
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => new SignUpPage(
+          builder: (context) => SignUpPage(
+                userRepository: _userRepository,
+              )),
+    );
+  }
+
+  signInGoogle(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => SignInWithGooglePage(
                 userRepository: _userRepository,
               )),
     );
@@ -156,6 +166,22 @@ class _LoginPageState extends State<LoginPage> {
                               signup(context);
                             },
                           ),
+//                          new FlatButton(
+//                            child: new Text(
+//                              'Sign in with Google',
+//                              style: new TextStyle(color: Colors.blue),
+//                            ),
+//                            onPressed: () {
+//                              signInGoogle(context);
+//                            },
+//                          ),
+//                          new FlatButton(
+//                            child: new Text(
+//                              'Sign in with Facebook',
+//                              style: new TextStyle(color: Colors.blue),
+//                            ),
+//                            onPressed: () {},
+//                          ),
                         ],
                       ),
                       Container(

@@ -5,9 +5,10 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stocktracker/utils/utils.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:stocktracker/utils/utils.dart';
 import 'package:stocktracker/models/models.dart';
 import 'package:stocktracker/widgets/widgets.dart';
 import 'package:stocktracker/blocs/blocs.dart';
@@ -25,7 +26,11 @@ class Stock extends StatefulWidget {
 class _StockState extends State<Stock> {
   Completer<void> _refreshCompleter;
 
+  List<charts.Series<IntraDayEntry, DateTime>> _intraDayChartData;
   List<charts.Series<DayEntry, DateTime>> _historicalChartData;
+
+  IntraDayEntry _selectedIntraDay;
+  DayEntry _selectedHistoric;
 
   @override
   void initState() {
@@ -89,6 +94,7 @@ class _StockState extends State<Stock> {
 
                   return RefreshIndicator(
                       onRefresh: () {
+                        _clearData();
                         BlocProvider.of<StockBloc>(context).add(RefreshStock(
                             exchange: widget.selectedStockExchange.exchange,
                             symbol: state.stockQuote.symbol));
@@ -114,35 +120,40 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderPortrait(BuildContext context, StockQuote stockQuote) {
-    return ListView(
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(top: 50.0, bottom: 10.0),
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.only(left: 20, right: 20),
-              child: AutoSizeText(
-                stockQuote.displayName,
-                maxLines: 2,
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
+    return Container(
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 50.0, bottom: 10.0),
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 20, right: 20),
+                  child: AutoSizeText(
+                    stockQuote.displayName,
+                    maxLines: 2,
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
-          ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 25.0),
+              child: Center(
+                child: _renderQuote(context, stockQuote),
+              ),
+            ),
+            _renderStats(context, stockQuote),
+            _renderIntraDayChart(context, stockQuote),
+            _renderHistoricChart(context, stockQuote),
+            _renderNews(context, stockQuote),
+          ],
         ),
-        Padding(
-          padding: EdgeInsets.only(bottom: 25.0),
-          child: Center(
-            child: _renderQuote(context, stockQuote),
-          ),
-        ),
-        _renderIntraDayChart(context, stockQuote),
-        _renderHistoricChart(context, stockQuote),
-        _renderNews(context, stockQuote),
-      ],
+      ),
     );
   }
 
@@ -172,6 +183,7 @@ class _StockState extends State<Stock> {
                   Center(
                     child: _renderQuote(context, stockQuote),
                   ),
+                  _renderStats(context, stockQuote),
                 ],
               ),
             ),
@@ -206,6 +218,171 @@ class _StockState extends State<Stock> {
             color: stockQuote.isPositiveChange() ? Colors.green : Colors.red));
   }
 
+  Widget _renderStats(BuildContext context, StockQuote stockQuote) {
+    if (widget.selectedStockExchange.exchange == 'crypto') {
+      return Container();
+    }
+    return Row(
+      children: <Widget>[
+        Card(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 2 - 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Open:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.open.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('High:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.high)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Low:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.low)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('52 WK High:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.fiftyTwoWeekHigh.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('52 WK Low:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.fiftyTwoWeekLow.toString())),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Card(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 2 - 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Volume:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.latestVolume != null
+                            ? NumberFormat.compact()
+                                .format(stockQuote.latestVolume)
+                                .toString()
+                            : '')),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Avg Volume:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.averageVolume)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Market Cap:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.marketCap)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('P/E Ratio:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.peRatio.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Container(
+                        padding: const EdgeInsets.all(8), child: Text('')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _renderIntraDayChart(BuildContext context, StockQuote stockQuote) {
     if (stockQuote.stockIntraDay.intraDayEntries.length == 0) {
       return Container();
@@ -234,18 +411,32 @@ class _StockState extends State<Stock> {
                   charts.SelectionModelConfig(
                       changedListener: (charts.SelectionModel model) {
                     if (model.hasDatumSelection) {
-                      print(model.selectedSeries[0]
-                          .measureFn(model.selectedDatum[0].index));
+                      setState(() {
+                        _selectedIntraDay = model.selectedDatum[0].datum;
+                      });
                     }
                   }),
                 ],
-                domainAxis: new charts.DateTimeAxisSpec(
-                  tickFormatterSpec: new charts.AutoDateTimeTickFormatterSpec(
-                    minute: new charts.TimeFormatterSpec(
+                domainAxis: charts.DateTimeAxisSpec(
+                  tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
+                    minute: charts.TimeFormatterSpec(
                       format: 'mm',
                       transitionFormat: 'h mm a',
                     ),
                   ),
+                ),
+                primaryMeasureAxis: charts.NumericAxisSpec(
+                    tickProviderSpec:
+                        charts.BasicNumericTickProviderSpec(zeroBound: false)),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: Text(
+                _selectedIntraDay != null ? _selectedIntraDay.toString() : '',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w300,
                 ),
               ),
             ),
@@ -276,6 +467,26 @@ class _StockState extends State<Stock> {
             child: charts.TimeSeriesChart(
               _getHistoricalChartData(stockQuote),
               behaviors: [charts.PanAndZoomBehavior()],
+              selectionModels: [
+                charts.SelectionModelConfig(
+                    changedListener: (charts.SelectionModel model) {
+                      if (model.hasDatumSelection) {
+                        setState(() {
+                          _selectedHistoric= model.selectedDatum[0].datum;
+                        });
+                      }
+                    }),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(10),
+            child: Text(
+              _selectedHistoric != null ? _selectedHistoric.toString() : '',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w300,
+              ),
             ),
           ),
         ]),
@@ -311,8 +522,8 @@ class _StockState extends State<Stock> {
                         color: Colors.blue,
                         decoration: TextDecoration.underline),
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        await launch(newsEntry.link);
+                      ..onTap = () {
+                        launch(newsEntry.link);
                       }))))
         .toList();
     return Card(
@@ -325,9 +536,13 @@ class _StockState extends State<Stock> {
 
   List<charts.Series<IntraDayEntry, DateTime>> _getIntraDayChartData(
       StockQuote stockQuote) {
-    final intraDayChartData = List<charts.Series<IntraDayEntry, DateTime>>();
+    if (_intraDayChartData != null) {
+      return _intraDayChartData;
+    }
 
-    intraDayChartData.add(
+    _intraDayChartData = List<charts.Series<IntraDayEntry, DateTime>>();
+
+    _intraDayChartData.add(
       charts.Series(
         domainFn: (IntraDayEntry entry, _) => entry.date,
         measureFn: (IntraDayEntry entry, _) => entry.close,
@@ -336,7 +551,7 @@ class _StockState extends State<Stock> {
       ),
     );
 
-    return intraDayChartData;
+    return _intraDayChartData;
   }
 
   List<charts.Series<DayEntry, DateTime>> _getHistoricalChartData(
@@ -367,5 +582,11 @@ class _StockState extends State<Stock> {
     } else {
       return null;
     }
+  }
+
+  void _clearData() {
+    _selectedIntraDay = null;
+    _selectedHistoric = null;
+    _intraDayChartData = null;
   }
 }

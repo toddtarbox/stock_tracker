@@ -5,6 +5,13 @@ class EncryptedAuthStorageService {
   final String _authStorageFile = 'bio-auth-storage-';
   final String _credentialsStorageKey = 'credentials-key';
 
+  final AndroidPromptInfo androidPromptInfoLogin = AndroidPromptInfo(
+      title: 'Biometric login.', subtitle: 'Use your biometric info to login.');
+
+  final AndroidPromptInfo androidPromptInfoStoreCredentials = AndroidPromptInfo(
+      title: 'Confirm biometric login.',
+      subtitle: 'Use your biometric info to login next time?');
+
   Future<bool> canAuthenticate() async {
     if (UniversalPlatform.isAndroid ||
         UniversalPlatform.isIOS ||
@@ -16,22 +23,26 @@ class EncryptedAuthStorageService {
     }
   }
 
-  Future<BiometricStorageFile> _getCredentialsStorage() async {
-    return await BiometricStorage()
-        .getStorage(_authStorageFile + _credentialsStorageKey);
+  Future<BiometricStorageFile> _getCredentialsStorage(
+      bool loadingCredentials) async {
+    return await BiometricStorage().getStorage(
+        _authStorageFile + _credentialsStorageKey,
+        androidPromptInfo: loadingCredentials
+            ? androidPromptInfoLogin
+            : androidPromptInfoStoreCredentials);
   }
 
   Future<void> storeCredentials(String username, String password) async {
     String value = '$username:$password';
-    return (await _getCredentialsStorage()).write(value);
+    return (await _getCredentialsStorage(false)).write(value);
   }
 
   Future<List<String>> loadCredentials() async {
-    String credentials = await (await _getCredentialsStorage()).read();
+    String credentials = await (await _getCredentialsStorage(true)).read();
     return credentials.split(':');
   }
 
   Future deleteCredentials() async {
-    return (await _getCredentialsStorage()).delete();
+    return (await _getCredentialsStorage(true)).delete();
   }
 }

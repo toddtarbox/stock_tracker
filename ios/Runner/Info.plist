@@ -43,5 +43,7 @@
 	<false/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Please authenticate</string>
+	<key>io.flutter.embedded_views_preview</key>
+    <true/>
 </dict>
 </plist>

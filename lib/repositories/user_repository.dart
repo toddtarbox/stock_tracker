@@ -1,23 +1,26 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:http/http.dart';
+import 'package:amazon_cognito_identity_dart_2/cognito.dart';
 import 'package:meta/meta.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:amazon_cognito_identity_dart/cognito.dart';
 
 import 'package:stocktracker/clients/clients.dart';
 import 'package:stocktracker/models/models.dart';
 import 'package:stocktracker/services/encrypted_auth_storage_service.dart';
 
 // Setup AWS User Pool Id & Client Id settings here:
-const _awsUserPoolId = 'us-east-2_TzvJJcJUp';
-const _awsClientId = '19qmv49jfbr7jfhojgoc71c2oc';
+const _cognitoUserPoolId = 'us-east-2_4iQKuSlQ1';
+const _cognitoClientId = '43pfbrl5401fm1qci1c169t28j';
+const _cognitoIdentityPoolId = 'us-east-2:4ad0c0df-4a17-45e0-830e-5999f816891d';
 
 class UserRepository {
   final UserApiClient userApiClient;
 
   final CognitoUserPool _userPool =
-      new CognitoUserPool(_awsUserPoolId, _awsClientId);
+      new CognitoUserPool(_cognitoUserPoolId, _cognitoClientId);
   CognitoUser _cognitoUser;
   CognitoUserSession _session;
   CognitoCredentials credentials;
@@ -85,6 +88,45 @@ class UserRepository {
     }
     final user = new User.fromUserAttributes(attributes);
     user.hasAccess = true;
+    return user;
+  }
+
+  Future<CognitoUser> authenticateWithAuthCode(String authCode) async {
+    String url =
+        'https://stocktracker.auth.us-east-2.amazoncognito.com/oauth2/token?grant_type=authorization_code&client_id=' +
+            '$_cognitoClientId&code=' +
+            authCode +
+            '&redirect_uri=stocktracker://';
+
+    final response = await post(url,
+        body: {},
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'});
+    if (response.statusCode != 200) {
+      throw Exception("Received bad status code from Cognito for auth code:" +
+          response.statusCode.toString() +
+          "; body: " +
+          response.body);
+    }
+
+    final tokenData = json.decode(response.body);
+
+    final idToken = new CognitoIdToken(tokenData['id_token']);
+    final accessToken = new CognitoAccessToken(tokenData['access_token']);
+    final refreshToken = new CognitoRefreshToken(tokenData['refresh_token']);
+    final session = new CognitoUserSession(idToken, accessToken,
+        refreshToken: refreshToken);
+    final user = new CognitoUser(null, _userPool, signInUserSession: session);
+
+    // NOTE: in order to get the email from the list of user attributes, make sure you select email in the list of
+    // attributes in Cognito and map it to the email field in the identity provider.
+    final attributes = await user.getUserAttributes();
+    for (CognitoUserAttribute attribute in attributes) {
+      if (attribute.getName() == "email") {
+        user.username = attribute.getValue();
+        break;
+      }
+    }
+
     return user;
   }
 

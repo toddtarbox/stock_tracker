@@ -119,16 +119,16 @@ class _SymbolSelectionState extends State<SymbolSelection> {
                                   child: RaisedButton(
                                     color: Theme.of(context).primaryColor,
                                     onPressed: () {
-                                      BlocProvider.of<StockBloc>(context).add(ClearStock());
+                                      BlocProvider.of<StockBloc>(context)
+                                          .add(ClearStock());
                                       Navigator.pushReplacement(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (context) => Stock(
-                                              selectedStockExchange:
+                                        FadeRoute(
+                                            page: Stock(
+                                          selectedStockExchange:
                                               widget.selectedExchange,
-                                              selectedStockSymbol:
-                                              _selectedSymbol,
-                                            )),
+                                          selectedStockSymbol: _selectedSymbol,
+                                        )),
                                       );
                                     },
                                     child: Text('Next'),

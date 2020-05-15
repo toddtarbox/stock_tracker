@@ -81,8 +81,8 @@ Future<bool> shouldSignOut(BuildContext context) {
 void resetToMarketSelection(BuildContext context) {
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(
-      builder: (context) => MarketSelection(),
+    FadeRoute(
+      page: MarketSelection(),
     ),
   );
 }

@@ -3,12 +3,15 @@ import 'dart:convert' show json;
 import 'package:flutter/services.dart' show rootBundle;
 
 class Secrets {
+  final String amazonApiKey;
   final String iexcloudApiKey;
 
-  Secrets({this.iexcloudApiKey});
+  Secrets({this.amazonApiKey, this.iexcloudApiKey});
 
   factory Secrets.fromJson(Map<Object, dynamic> jsonMap) {
-    return new Secrets(iexcloudApiKey: jsonMap['iexcloudApiKey']);
+    return new Secrets(
+        amazonApiKey: jsonMap['amazonApiKey'],
+        iexcloudApiKey: jsonMap['iexcloudApiKey']);
   }
 }
 

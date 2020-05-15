@@ -209,6 +209,15 @@ class _SignUpPageState extends State<SignUpPage> {
                               child: Text('Sign Up'),
                             ),
                           ),
+                          new FlatButton(
+                            child: new Text(
+                              'Cancel',
+                              style: new TextStyle(color: Colors.blue),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
                         ],
                       ),
                       Container(

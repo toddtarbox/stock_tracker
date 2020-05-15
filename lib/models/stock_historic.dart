@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:intl/intl.dart';
 
 class DayEntry extends Equatable {
   final DateTime date;
@@ -22,6 +23,12 @@ class DayEntry extends Equatable {
     }
 
     return DayEntry(date: dateTime, close: close.toDouble());
+  }
+
+  @override
+  String toString() {
+    var formatter = new DateFormat('MM-dd-yyyy');
+    return formatter.format(date.toLocal()) + " " + close.toString();
   }
 }
 

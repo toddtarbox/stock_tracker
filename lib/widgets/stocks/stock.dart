@@ -147,7 +147,7 @@ class _StockState extends State<Stock> {
                 child: _renderQuote(context, stockQuote),
               ),
             ),
-            _renderStats(context, stockQuote),
+            _renderStatsPortrait(context, stockQuote),
             _renderIntraDayChart(context, stockQuote),
             _renderHistoricChart(context, stockQuote),
             _renderNews(context, stockQuote),
@@ -183,7 +183,7 @@ class _StockState extends State<Stock> {
                   Center(
                     child: _renderQuote(context, stockQuote),
                   ),
-                  _renderStats(context, stockQuote),
+                  _renderStatsLandscape(context, stockQuote),
                 ],
               ),
             ),
@@ -218,7 +218,7 @@ class _StockState extends State<Stock> {
             color: stockQuote.isPositiveChange() ? Colors.green : Colors.red));
   }
 
-  Widget _renderStats(BuildContext context, StockQuote stockQuote) {
+  Widget _renderStatsPortrait(BuildContext context, StockQuote stockQuote) {
     if (widget.selectedStockExchange.exchange == 'crypto') {
       return Container();
     }
@@ -323,6 +323,171 @@ class _StockState extends State<Stock> {
                             ? NumberFormat.compact()
                                 .format(stockQuote.latestVolume)
                                 .toString()
+                            : '')),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Avg Volume:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.averageVolume)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Market Cap:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.marketCap)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('P/E Ratio:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.peRatio.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Container(
+                        padding: const EdgeInsets.all(8), child: Text('')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _renderStatsLandscape(BuildContext context, StockQuote stockQuote) {
+    if (widget.selectedStockExchange.exchange == 'crypto') {
+      return Container();
+    }
+    return Column(
+      children: <Widget>[
+        Card(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 2 - 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Open:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.open.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('High:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.high)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Low:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.low)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('52 WK High:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.fiftyTwoWeekHigh.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('52 WK Low:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.fiftyTwoWeekLow.toString())),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Card(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 2 - 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Volume:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.latestVolume != null
+                            ? NumberFormat.compact()
+                            .format(stockQuote.latestVolume)
+                            .toString()
                             : '')),
                   ],
                 ),

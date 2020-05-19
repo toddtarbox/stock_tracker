@@ -627,10 +627,16 @@ class _StockState extends State<Stock> {
               child: charts.TimeSeriesChart(
                 _getIntraDayChartData(stockQuote),
                 defaultRenderer:
-                    charts.LineRendererConfig(includeArea: true, stacked: true),
+                    charts.LineRendererConfig(includeArea: true),
                 animate: false,
                 behaviors: [
                   charts.PanAndZoomBehavior(),
+                  charts.LinePointHighlighter(
+                      showHorizontalFollowLine:
+                      charts.LinePointHighlighterFollowLineType.none,
+                      showVerticalFollowLine:
+                      charts.LinePointHighlighterFollowLineType.nearest),
+                  charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)
                 ],
                 selectionModels: [
                   charts.SelectionModelConfig(
@@ -710,7 +716,15 @@ class _StockState extends State<Stock> {
             child: charts.TimeSeriesChart(
               data,
               animate: false,
-              behaviors: [charts.PanAndZoomBehavior()],
+              behaviors: [
+                charts.PanAndZoomBehavior(),
+                charts.LinePointHighlighter(
+                    showHorizontalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.none,
+                    showVerticalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.nearest),
+                charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)
+              ],
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {

@@ -32,7 +32,7 @@ class IntraDayEntry extends Equatable {
 
   @override
   String toString() {
-    var formatter = new DateFormat('MM-dd-yyyy HH:mm a');
+    var formatter = new DateFormat('MM-dd-yyyy h:mm a');
     return formatter.format(date.toLocal()) + " " + close.toString();
   }
 }

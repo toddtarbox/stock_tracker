@@ -27,6 +27,7 @@ class Stock extends StatefulWidget {
 class _StockState extends State<Stock> {
   Completer<void> _refreshCompleter;
 
+  List<charts.Series<IntraDayEntry, DateTime>> _intraDayChartData;
   List<charts.Series<DayEntry, DateTime>> _historicalChartData;
   List<NewsEntry> _news;
 
@@ -231,7 +232,7 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderQuote(BuildContext context, StockQuote stockQuote) {
-    var formatter = new DateFormat('MM-dd-yyyy h:mm a');
+    var formatter = DateFormat('MM-dd-yyyy h:mm a');
     String lastestUpdate = formatter.format(stockQuote.latestUpdate.toLocal());
 
     return Column(
@@ -589,7 +590,9 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderIntraDayChart(BuildContext context, StockQuote stockQuote) {
-    if (stockQuote.stockIntraDay.intraDayEntries.length == 0) {
+    List<charts.Series<IntraDayEntry, DateTime>> data =
+        _getIntraDayChartData(stockQuote);
+    if (data.length == 0) {
       return Container();
     }
 
@@ -625,25 +628,24 @@ class _StockState extends State<Stock> {
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.3,
               child: charts.TimeSeriesChart(
-                _getIntraDayChartData(stockQuote),
-                defaultRenderer:
-                    charts.LineRendererConfig(includeArea: true),
+                data,
                 animate: false,
                 behaviors: [
                   charts.PanAndZoomBehavior(),
                   charts.LinePointHighlighter(
                       showHorizontalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.none,
+                          charts.LinePointHighlighterFollowLineType.nearest,
                       showVerticalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.nearest),
-                  charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)
+                          charts.LinePointHighlighterFollowLineType.nearest),
+                  charts.SelectNearest(
+                      eventTrigger: charts.SelectionTrigger.tapAndDrag)
                 ],
                 selectionModels: [
                   charts.SelectionModelConfig(
                       changedListener: (charts.SelectionModel model) {
                     if (model.hasDatumSelection) {
                       setState(() {
-                        _selectedIntraDay = model.selectedDatum[0].datum;
+                        _selectedIntraDay = model.selectedDatum.first.datum;
                       });
                     }
                   }),
@@ -720,17 +722,18 @@ class _StockState extends State<Stock> {
                 charts.PanAndZoomBehavior(),
                 charts.LinePointHighlighter(
                     showHorizontalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.none,
+                        charts.LinePointHighlighterFollowLineType.all,
                     showVerticalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.nearest),
-                charts.SelectNearest(eventTrigger: charts.SelectionTrigger.tapAndDrag)
+                        charts.LinePointHighlighterFollowLineType.nearest),
+                charts.SelectNearest(
+                    eventTrigger: charts.SelectionTrigger.tapAndDrag)
               ],
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
                   if (model.hasDatumSelection) {
                     setState(() {
-                      _selectedHistoric = model.selectedDatum[0].datum;
+                      _selectedHistoric = model.selectedDatum.first.datum;
                     });
                   }
                 }),
@@ -794,26 +797,27 @@ class _StockState extends State<Stock> {
 
   List<charts.Series<IntraDayEntry, DateTime>> _getIntraDayChartData(
       StockQuote stockQuote) {
-    List<charts.Series<IntraDayEntry, DateTime>> intraDayChartData =
-        List<charts.Series<IntraDayEntry, DateTime>>();
+    if (_intraDayChartData != null) {
+      return _intraDayChartData;
+    }
 
-    final red = charts.MaterialPalette.red.makeShades(2);
-    final green = charts.MaterialPalette.green.makeShades(2);
+    _intraDayChartData = List<charts.Series<IntraDayEntry, DateTime>>();
 
-    intraDayChartData.add(
+    final red = charts.MaterialPalette.red.shadeDefault;
+    final green = charts.MaterialPalette.green.shadeDefault;
+
+    _intraDayChartData.add(
       charts.Series(
         domainFn: (IntraDayEntry entry, _) => entry.date,
         measureFn: (IntraDayEntry entry, _) => entry.close,
         colorFn: (IntraDayEntry entry, _) =>
-            entry.close < stockQuote.previousClose ? red[0] : green[0],
-        areaColorFn: (IntraDayEntry entry, _) =>
-            entry.close < stockQuote.previousClose ? red[1] : green[1],
+            entry.close < stockQuote.previousClose ? red : green,
         id: 'Day Chart',
         data: stockQuote.stockIntraDay.intraDayEntries,
       ),
     );
 
-    return intraDayChartData;
+    return _intraDayChartData;
   }
 
   List<charts.Series<DayEntry, DateTime>> _getHistoricalChartData(
@@ -856,6 +860,8 @@ class _StockState extends State<Stock> {
   void _clearData() {
     _selectedIntraDay = null;
     _selectedHistoric = null;
+
+    _intraDayChartData = null;
   }
 
   void _refreshQuote() {

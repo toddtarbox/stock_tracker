@@ -22,19 +22,29 @@ class StockBloc extends Bloc<StockEvent, StockState> {
     if (event is FetchStock) {
       yield StockLoading();
       try {
-        final StockQuote stock =
-            await stockRepository.getStockQuote(event.exchange, event.symbol);
-        final StockIntraDay stockIntraDay =
-            await stockRepository.getStockIntraDay(event.symbol);
-        final StockHistoric stockHistoric =
-            await stockRepository.getStockHistoric(event.symbol);
-        final StockNews stockNews =
-            await stockRepository.getStockNews(event.symbol);
+        final Future<StockQuote> stockFuture =
+            stockRepository.getStockQuote(event.exchange, event.symbol);
+        final Future<StockIntraDay> stockIntraDayFuture =
+            stockRepository.getStockIntraDay(event.symbol);
+        final Future<StockHistoric> stockHistoricFuture =
+            stockRepository.getStockHistoric(event.symbol, event.period);
+        final Future<StockNews> stockNewsFuture =
+            stockRepository.getStockNews(event.symbol);
 
-        stock.stockIntraDay = stockIntraDay;
-        stock.stockHistoric = stockHistoric;
-        stock.stockNews = stockNews;
-        yield StockLoaded(stockQuote: stock);
+        StockQuote stockQuote = await Future.wait([
+          stockFuture,
+          stockIntraDayFuture,
+          stockHistoricFuture,
+          stockNewsFuture
+        ]).then((List responses) {
+          StockQuote stockQuote = responses[0];
+          stockQuote.stockIntraDay = responses[1];
+          stockQuote.stockHistoric = responses[2];
+          stockQuote.stockNews = responses[3];
+          return stockQuote;
+        });
+
+        yield StockLoaded(stockQuote: stockQuote);
       } catch (error) {
         yield StockError(error: error.toString());
       }
@@ -43,21 +53,39 @@ class StockBloc extends Bloc<StockEvent, StockState> {
     if (event is RefreshStock) {
       yield StockLoading();
       try {
-        final StockQuote stock =
-            await stockRepository.getStockQuote(event.exchange, event.symbol);
-        final StockIntraDay stockIntraDay =
-            await stockRepository.getStockIntraDay(event.symbol);
-        final StockHistoric stockHistoric =
-            await stockRepository.getStockHistoric(event.symbol);
-        final StockNews stockNews =
-            await stockRepository.getStockNews(event.symbol);
+        // Re-fetch just the quote and the intraday
+        final Future<StockQuote> stockFuture =
+            stockRepository.getStockQuote(event.exchange, event.symbol);
+        final Future<StockIntraDay> stockIntraDayFuture =
+            stockRepository.getStockIntraDay(event.symbol);
 
-        stock.stockIntraDay = stockIntraDay;
-        stock.stockHistoric = stockHistoric;
-        stock.stockNews = stockNews;
-        yield StockLoaded(stockQuote: stock);
-      } catch (_) {
-        yield state;
+        StockQuote stockQuote =
+            await Future.wait([stockFuture, stockIntraDayFuture])
+                .then((List responses) {
+          StockQuote stockQuote = responses[0];
+          stockQuote.stockIntraDay = responses[1];
+          return stockQuote;
+        });
+
+        yield StockLoaded(stockQuote: stockQuote);
+      } catch (error) {
+        yield StockError(error: error.toString());
+      }
+    }
+
+    if (event is RefreshHistoric) {
+      yield HistoricReloading(stockQuote: event.stockQuote);
+      try {
+        // Re-fetch just the historic date for the given period
+        final StockHistoric stockHistoric = await stockRepository
+            .getStockHistoric(event.stockQuote.symbol, event.period);
+
+        StockQuote stockQuote = event.stockQuote;
+        stockQuote.stockHistoric = stockHistoric;
+
+        yield HistoricReloaded(stockQuote: stockQuote);
+      } catch (error) {
+        yield StockError(error: error.toString());
       }
     }
   }

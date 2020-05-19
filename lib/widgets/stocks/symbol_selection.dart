@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:stocktracker/blocs/blocs.dart';
 import 'package:stocktracker/models/models.dart';
@@ -19,6 +22,21 @@ class SymbolSelection extends StatefulWidget {
 
 class _SymbolSelectionState extends State<SymbolSelection> {
   StockSymbol _selectedSymbol;
+
+  @override
+  void initState() {
+    SharedPreferences.getInstance().then((prefs) => {
+      if (prefs.containsKey('_selectedSymbol'))
+        {
+          setState(() {
+            _selectedSymbol = StockSymbol.fromPrefsString(
+                prefs.getString('_selectedSymbol'));
+          })
+        }
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +91,9 @@ class _SymbolSelectionState extends State<SymbolSelection> {
                                   setState(() {
                                     _selectedSymbol = value;
                                   });
+                                  SharedPreferences.getInstance().then((prefs) =>
+                                      prefs.setString('_selectedSymbol',
+                                          jsonEncode(_selectedSymbol.toJson())));
                                 },
                                 isExpanded: true,
                                 searchFn: (String keyword, items) {

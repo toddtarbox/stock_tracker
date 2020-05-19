@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
 class StockExchange extends Equatable {
@@ -23,6 +25,27 @@ class StockExchange extends Equatable {
   @override
   String toString() {
     return displayName;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'exchange': exchange,
+        'region': region,
+        'description': description,
+        'mic': mic,
+        'exchangeSuffix': exchangeSuffix,
+      };
+
+  static StockExchange fromPrefsString(String prefsString) {
+    dynamic prefsJSON = jsonDecode(prefsString);
+
+    StockExchange stockExchange = StockExchange(
+        exchange: prefsJSON['exchange'],
+        region: prefsJSON['region'],
+        description: prefsJSON['description'],
+        mic: prefsJSON['mic'],
+        exchangeSuffix: prefsJSON['exchangeSuffix']);
+
+    return stockExchange;
   }
 
   static StockExchange fromIEXCloudJson(dynamic json) {

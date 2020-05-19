@@ -14,6 +14,26 @@ class StockEmpty extends StockState {}
 
 class StockLoading extends StockState {}
 
+class HistoricReloading extends StockState {
+  final StockQuote stockQuote;
+
+  const HistoricReloading({@required this.stockQuote})
+      : assert(stockQuote != null);
+
+  @override
+  List<Object> get props => [stockQuote];
+}
+
+class HistoricReloaded extends StockState {
+  final StockQuote stockQuote;
+
+  const HistoricReloaded({@required this.stockQuote})
+      : assert(stockQuote != null);
+
+  @override
+  List<Object> get props => [stockQuote];
+}
+
 class StockLoaded extends StockState {
   final StockQuote stockQuote;
 

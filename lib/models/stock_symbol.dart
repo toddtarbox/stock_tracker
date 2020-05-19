@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 
 class StockSymbol extends Equatable {
@@ -14,6 +16,21 @@ class StockSymbol extends Equatable {
   @override
   String toString() {
     return displayName;
+  }
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'symbol': symbol,
+  };
+
+  static StockSymbol fromPrefsString(String prefsString) {
+    dynamic prefsJSON = jsonDecode(prefsString);
+
+    StockSymbol stockSymbol = StockSymbol(
+        name: prefsJSON['name'],
+        symbol: prefsJSON['symbol']);
+
+    return stockSymbol;
   }
 
   static StockSymbol fromIEXCloudJson(dynamic json) {

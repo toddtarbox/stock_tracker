@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,16 +27,23 @@ class Stock extends StatefulWidget {
 class _StockState extends State<Stock> {
   Completer<void> _refreshCompleter;
 
-  List<charts.Series<IntraDayEntry, DateTime>> _intraDayChartData;
   List<charts.Series<DayEntry, DateTime>> _historicalChartData;
+  List<NewsEntry> _news;
+
+  String historicPeriod = '3m';
 
   IntraDayEntry _selectedIntraDay;
   DayEntry _selectedHistoric;
+
+  Timer _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _refreshCompleter = Completer<void>();
+
+    _refreshTimer =
+        new Timer.periodic(Duration(minutes: 1), (Timer t) => _refreshQuote());
   }
 
   @override
@@ -80,7 +88,8 @@ class _StockState extends State<Stock> {
                   onWidgetDidBuild(() {
                     BlocProvider.of<StockBloc>(context).add(FetchStock(
                         exchange: widget.selectedStockExchange.exchange,
-                        symbol: widget.selectedStockSymbol.symbol));
+                        symbol: widget.selectedStockSymbol.symbol,
+                        period: historicPeriod));
                   });
                   return LoadingIndicator();
                 }
@@ -89,15 +98,25 @@ class _StockState extends State<Stock> {
                   return LoadingIndicator();
                 }
 
-                if (state is StockLoaded) {
-                  final stockQuote = state.stockQuote;
+                var stockQuote;
 
+                if (state is HistoricReloading) {
+                  stockQuote = state.stockQuote;
+                }
+
+                if (state is StockLoaded) {
+                  stockQuote = state.stockQuote;
+                }
+
+                if (state is HistoricReloaded) {
+                  _historicalChartData = null;
+                  stockQuote = state.stockQuote;
+                }
+
+                if (stockQuote != null) {
                   return RefreshIndicator(
                       onRefresh: () {
-                        _clearData();
-                        BlocProvider.of<StockBloc>(context).add(RefreshStock(
-                            exchange: widget.selectedStockExchange.exchange,
-                            symbol: state.stockQuote.symbol));
+                        _refreshQuote();
                         return _refreshCompleter.future;
                       },
                       child: MediaQuery.of(context).size.width < 600
@@ -161,6 +180,7 @@ class _StockState extends State<Stock> {
     return ListView(
       children: <Widget>[
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
               width: MediaQuery.of(context).size.width * .35,
@@ -223,6 +243,178 @@ class _StockState extends State<Stock> {
       return Container();
     }
     return Row(
+      children: <Widget>[
+        Card(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 2 - 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Open:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.open.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('High:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.high)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Low:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.low)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('52 WK High:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.fiftyTwoWeekHigh.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('52 WK Low:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.fiftyTwoWeekLow.toString())),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Card(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width / 2 - 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Prev Close:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.previousClose.toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Volume:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.latestVolume != null
+                            ? NumberFormat.compact()
+                                .format(stockQuote.latestVolume)
+                                .toString()
+                            : '')),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Avg Volume:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.averageVolume)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('Market Cap:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(NumberFormat.compact()
+                            .format(stockQuote.marketCap)
+                            .toString())),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 120,
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text('P/E Ratio:')),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(stockQuote.peRatio.toString())),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _renderStatsLandscape(BuildContext context, StockQuote stockQuote) {
+    if (widget.selectedStockExchange.exchange == 'crypto') {
+      return Container();
+    }
+    return Column(
       children: <Widget>[
         Card(
           child: SizedBox(
@@ -383,175 +575,31 @@ class _StockState extends State<Stock> {
     );
   }
 
-  Widget _renderStatsLandscape(BuildContext context, StockQuote stockQuote) {
-    if (widget.selectedStockExchange.exchange == 'crypto') {
-      return Container();
-    }
-    return Column(
-      children: <Widget>[
-        Card(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width / 2 - 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('Open:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(stockQuote.open.toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('High:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(NumberFormat.compact()
-                            .format(stockQuote.high)
-                            .toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('Low:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(NumberFormat.compact()
-                            .format(stockQuote.low)
-                            .toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('52 WK High:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(stockQuote.fiftyTwoWeekHigh.toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('52 WK Low:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(stockQuote.fiftyTwoWeekLow.toString())),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        Card(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width / 2 - 10,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('Volume:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(stockQuote.latestVolume != null
-                            ? NumberFormat.compact()
-                            .format(stockQuote.latestVolume)
-                            .toString()
-                            : '')),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('Avg Volume:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(NumberFormat.compact()
-                            .format(stockQuote.averageVolume)
-                            .toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('Market Cap:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(NumberFormat.compact()
-                            .format(stockQuote.marketCap)
-                            .toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 120,
-                      child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: Text('P/E Ratio:')),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(stockQuote.peRatio.toString())),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Container(
-                        padding: const EdgeInsets.all(8), child: Text('')),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _renderIntraDayChart(BuildContext context, StockQuote stockQuote) {
     if (stockQuote.stockIntraDay.intraDayEntries.length == 0) {
       return Container();
     }
+
+    DateTime reportDate = stockQuote.stockIntraDay.intraDayEntries[0].date;
+
+    final staticTicks = <charts.TickSpec<DateTime>>[
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 9)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 10)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 11)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 12)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 13)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 14)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 15)),
+      new charts.TickSpec(
+          DateTime(reportDate.year, reportDate.month, reportDate.day, 16)),
+    ];
 
     return Card(
       child: Padding(
@@ -569,6 +617,9 @@ class _StockState extends State<Stock> {
               height: MediaQuery.of(context).size.height * 0.3,
               child: charts.TimeSeriesChart(
                 _getIntraDayChartData(stockQuote),
+                defaultRenderer:
+                    charts.LineRendererConfig(includeArea: true, stacked: true),
+                animate: false,
                 behaviors: [
                   charts.PanAndZoomBehavior(),
                 ],
@@ -583,16 +634,20 @@ class _StockState extends State<Stock> {
                   }),
                 ],
                 domainAxis: charts.DateTimeAxisSpec(
+                  tickProviderSpec:
+                      charts.StaticDateTimeTickProviderSpec(staticTicks),
                   tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
                     minute: charts.TimeFormatterSpec(
-                      format: 'mm',
-                      transitionFormat: 'h mm a',
+                      transitionFormat: 'h a',
                     ),
                   ),
                 ),
                 primaryMeasureAxis: charts.NumericAxisSpec(
-                    tickProviderSpec:
-                        charts.BasicNumericTickProviderSpec(zeroBound: false)),
+                    tickProviderSpec: charts.BasicNumericTickProviderSpec(
+                        zeroBound: false,
+                        dataIsInWholeNumbers: false,
+                        desiredMinTickCount: 5,
+                        desiredMaxTickCount: 7)),
               ),
             ),
             Padding(
@@ -612,7 +667,9 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderHistoricChart(BuildContext context, StockQuote stockQuote) {
-    if (stockQuote.stockHistoric.dailyEntries.length == 0) {
+    List<charts.Series<DayEntry, DateTime>> data =
+        _getHistoricalChartData(stockQuote);
+    if (data.length == 0) {
       return Container();
     }
 
@@ -621,26 +678,39 @@ class _StockState extends State<Stock> {
         padding: EdgeInsets.all(20),
         child: Column(children: <Widget>[
           Text(
-            'Historic (3 Month)',
+            _getHistoricText(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w300,
             ),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _getHistoricLink(stockQuote, '1m'),
+              _getHistoricLink(stockQuote, '3m'),
+              _getHistoricLink(stockQuote, '6m'),
+              _getHistoricLink(stockQuote, '1y'),
+              _getHistoricLink(stockQuote, '2y'),
+              _getHistoricLink(stockQuote, '5y'),
+              _getHistoricLink(stockQuote, 'max'),
+            ],
+          ),
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.3,
             child: charts.TimeSeriesChart(
-              _getHistoricalChartData(stockQuote),
+              data,
+              animate: false,
               behaviors: [charts.PanAndZoomBehavior()],
               selectionModels: [
                 charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
-                      if (model.hasDatumSelection) {
-                        setState(() {
-                          _selectedHistoric= model.selectedDatum[0].datum;
-                        });
-                      }
-                    }),
+                  if (model.hasDatumSelection) {
+                    setState(() {
+                      _selectedHistoric = model.selectedDatum[0].datum;
+                    });
+                  }
+                }),
               ],
             ),
           ),
@@ -660,10 +730,10 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderNews(BuildContext context, StockQuote stockQuote) {
-    if (stockQuote.stockNews.newsEntries.length == 0) {
+    List<NewsEntry> news = _getStockNewsData(stockQuote);
+    if (news.length == 0) {
       return Container();
     }
-
     List<Widget> widgets = [
       Text(
         'Recent News',
@@ -673,7 +743,7 @@ class _StockState extends State<Stock> {
         ),
       ),
     ];
-    widgets += _getStockNewsData(stockQuote)
+    widgets += news
         .map((newsEntry) => Padding(
             padding: EdgeInsets.all(10),
             child: RichText(
@@ -688,7 +758,7 @@ class _StockState extends State<Stock> {
                         decoration: TextDecoration.underline),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        launch(newsEntry.link);
+                        launch(newsEntry.link, forceWebView: true);
                       }))))
         .toList();
     return Card(
@@ -701,22 +771,26 @@ class _StockState extends State<Stock> {
 
   List<charts.Series<IntraDayEntry, DateTime>> _getIntraDayChartData(
       StockQuote stockQuote) {
-    if (_intraDayChartData != null) {
-      return _intraDayChartData;
-    }
+    List<charts.Series<IntraDayEntry, DateTime>> intraDayChartData =
+        List<charts.Series<IntraDayEntry, DateTime>>();
 
-    _intraDayChartData = List<charts.Series<IntraDayEntry, DateTime>>();
+    final red = charts.MaterialPalette.red.makeShades(2);
+    final green = charts.MaterialPalette.green.makeShades(2);
 
-    _intraDayChartData.add(
+    intraDayChartData.add(
       charts.Series(
         domainFn: (IntraDayEntry entry, _) => entry.date,
         measureFn: (IntraDayEntry entry, _) => entry.close,
+        colorFn: (IntraDayEntry entry, _) =>
+            entry.close < stockQuote.previousClose ? red[0] : green[0],
+        areaColorFn: (IntraDayEntry entry, _) =>
+            entry.close < stockQuote.previousClose ? red[1] : green[1],
         id: 'Day Chart',
         data: stockQuote.stockIntraDay.intraDayEntries,
       ),
     );
 
-    return _intraDayChartData;
+    return intraDayChartData;
   }
 
   List<charts.Series<DayEntry, DateTime>> _getHistoricalChartData(
@@ -727,7 +801,8 @@ class _StockState extends State<Stock> {
 
     _historicalChartData = List<charts.Series<DayEntry, DateTime>>();
 
-    if (stockQuote.stockHistoric != null) {
+    if (stockQuote.stockHistoric != null &&
+        stockQuote.stockHistoric.dailyEntries.length > 0) {
       _historicalChartData.add(
         charts.Series(
           domainFn: (DayEntry entry, _) => entry.date,
@@ -742,16 +817,90 @@ class _StockState extends State<Stock> {
   }
 
   List<NewsEntry> _getStockNewsData(StockQuote stockQuote) {
-    if (stockQuote.stockNews != null) {
-      return stockQuote.stockNews.newsEntries;
-    } else {
-      return null;
+    if (_news != null) {
+      return _news;
     }
+
+    _news = List<NewsEntry>();
+
+    if (stockQuote.stockNews != null) {
+      _news = stockQuote.stockNews.newsEntries;
+    }
+
+    return _news;
   }
 
   void _clearData() {
     _selectedIntraDay = null;
     _selectedHistoric = null;
-    _intraDayChartData = null;
+  }
+
+  void _refreshQuote() {
+    print("Refreshing the quote...");
+
+    _clearData();
+    BlocProvider.of<StockBloc>(context).add(RefreshStock(
+        exchange: widget.selectedStockExchange.exchange,
+        symbol: widget.selectedStockSymbol.symbol,
+        period: historicPeriod));
+  }
+
+  void _refreshHistoricChart(StockQuote stockQuote, String period) {
+    print("Refreshing the historic chart...");
+
+    BlocProvider.of<StockBloc>(context)
+        .add(RefreshHistoric(stockQuote: stockQuote, period: period));
+  }
+
+  Widget _getHistoricLink(StockQuote stockQuote, String period) {
+    String linkText = period.toUpperCase();
+
+    return Padding(
+        padding: EdgeInsets.all(10),
+        child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+                text: linkText,
+                style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    if (historicPeriod != period) {
+                      setState(() {
+                        historicPeriod = period;
+                      });
+                      _refreshHistoricChart(stockQuote, period);
+                    }
+                  })));
+  }
+
+  String _getHistoricText() {
+    switch (historicPeriod) {
+      case '1m':
+        return 'Historic (1 Month)';
+      case '3m':
+        return 'Historic (3 Month)';
+      case '6m':
+        return 'Historic (6 Month)';
+      case '1y':
+        return 'Historic (1 Year)';
+      case '2y':
+        return 'Historic (2 Year)';
+      case '5y':
+        return 'Historic (5 Year)';
+      case 'max':
+        return 'Historic (15 Year)';
+      default:
+        return '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer.cancel();
+
+    super.dispose();
   }
 }

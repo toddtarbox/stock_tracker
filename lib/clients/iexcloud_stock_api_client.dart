@@ -19,12 +19,15 @@ class IEXCloudStockApiClient implements StockApiClient {
   static const String baseExchangeSymbolsUrl =
       'https://f28d0a9gqf.execute-api.us-east-2.amazonaws.com/default/exchanges/[exchange]/symbols';
 
+//  static const String baseQuotelUrl =
+//      'https://cloud.iexapis.com/v1/stock/[symbol]/quote?token=';
   static const String baseQuotelUrl =
-      'https://cloud.iexapis.com/v1/stock/[symbol]/quote?token=';
+      'https://f28d0a9gqf.execute-api.us-east-2.amazonaws.com/default/stock/[symbol]/quote';
+
   static const String baseIntraDayUrl =
-      'https://cloud.iexapis.com/v1/stock/[symbol]/intraday-prices?range=3m&token=';
+      'https://cloud.iexapis.com/v1/stock/[symbol]/intraday-prices?range=3m&chartIEXOnly=true&token=';
   static const String baseHistoricUrl =
-      'https://cloud.iexapis.com/v1/stock/[symbol]/chart/3m?chartCloseOnly=true&chartByDay=true&token=';
+      'https://cloud.iexapis.com/v1/stock/[symbol]/chart/[period]?chartCloseOnly=true&token=';
   static const String baseNewsUrl =
       'https://cloud.iexapis.com/v1/stock/[symbol]/news/last/5?token=';
 
@@ -78,13 +81,20 @@ class IEXCloudStockApiClient implements StockApiClient {
 
   @override
   Future<StockQuote> fetchStock(String exchange, String symbol) async {
-    String quoteUrl =
-        baseQuotelUrl.replaceAll('[symbol]', symbol) + secrets.iexcloudApiKey;
+    Map<String, String> headers = {
+      'Content-type': 'application/json',
+      'x-api-key': secrets.amazonApiKey
+    };
+
+    String quoteUrl = baseQuotelUrl.replaceAll('[symbol]', symbol);
     if (exchange == 'crypto') {
       quoteUrl = baseCryptQuoteUrl.replaceAll('[symbol]', symbol) +
           secrets.iexcloudApiKey;
     }
-    final response = await httpClient.get(quoteUrl);
+
+    print("Fetching quote...");
+    final response = await httpClient.get(quoteUrl, headers: headers);
+    print("Quote returned");
 
     if (response.statusCode != 200) {
       throw Exception('Error getting stock quote for symbol: ' + symbol);
@@ -98,7 +108,10 @@ class IEXCloudStockApiClient implements StockApiClient {
   Future<StockIntraDay> fetchStockIntraDay(String symbol) async {
     final quoteUrl =
         baseIntraDayUrl.replaceAll('[symbol]', symbol) + secrets.iexcloudApiKey;
+
+    print("Fetching intraday...");
     final response = await httpClient.get(quoteUrl);
+    print("Intraday returned");
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -110,10 +123,15 @@ class IEXCloudStockApiClient implements StockApiClient {
   }
 
   @override
-  Future<StockHistoric> fetchStockHistoric(String symbol) async {
-    final quoteUrl =
-        baseHistoricUrl.replaceAll('[symbol]', symbol) + secrets.iexcloudApiKey;
+  Future<StockHistoric> fetchStockHistoric(String symbol, String period) async {
+    final quoteUrl = baseHistoricUrl
+            .replaceAll('[symbol]', symbol)
+            .replaceAll('[period]', period) +
+        secrets.iexcloudApiKey;
+
+    print("Fetching historic...");
     final response = await httpClient.get(quoteUrl);
+    print("Historic returned");
 
     if (response.statusCode != 200) {
       throw Exception(

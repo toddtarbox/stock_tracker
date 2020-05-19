@@ -27,8 +27,8 @@ class StockRepository {
     return stockApiClient.fetchStockIntraDay(symbol);
   }
 
-  Future<StockHistoric> getStockHistoric(String symbol) async {
-    return stockApiClient.fetchStockHistoric(symbol);
+  Future<StockHistoric> getStockHistoric(String symbol, String period) async {
+    return stockApiClient.fetchStockHistoric(symbol, period);
   }
 
   Future<StockNews> getStockNews(String symbol) async {

@@ -597,8 +597,6 @@ class _StockState extends State<Stock> {
 
     final staticTicks = <charts.TickSpec<DateTime>>[
       new charts.TickSpec(
-          DateTime(reportDate.year, reportDate.month, reportDate.day, 9)),
-      new charts.TickSpec(
           DateTime(reportDate.year, reportDate.month, reportDate.day, 10)),
       new charts.TickSpec(
           DateTime(reportDate.year, reportDate.month, reportDate.day, 11)),
@@ -610,8 +608,6 @@ class _StockState extends State<Stock> {
           DateTime(reportDate.year, reportDate.month, reportDate.day, 14)),
       new charts.TickSpec(
           DateTime(reportDate.year, reportDate.month, reportDate.day, 15)),
-      new charts.TickSpec(
-          DateTime(reportDate.year, reportDate.month, reportDate.day, 16)),
     ];
 
     return Card(

@@ -26,14 +26,14 @@ class _SymbolSelectionState extends State<SymbolSelection> {
   @override
   void initState() {
     SharedPreferences.getInstance().then((prefs) => {
-      if (prefs.containsKey('_selectedSymbol'))
-        {
-          setState(() {
-            _selectedSymbol = StockSymbol.fromPrefsString(
-                prefs.getString('_selectedSymbol'));
-          })
-        }
-    });
+          if (prefs.containsKey('_selectedSymbol'))
+            {
+              setState(() {
+                _selectedSymbol = StockSymbol.fromPrefsString(
+                    prefs.getString('_selectedSymbol'));
+              })
+            }
+        });
 
     super.initState();
   }
@@ -91,9 +91,11 @@ class _SymbolSelectionState extends State<SymbolSelection> {
                                   setState(() {
                                     _selectedSymbol = value;
                                   });
-                                  SharedPreferences.getInstance().then((prefs) =>
-                                      prefs.setString('_selectedSymbol',
-                                          jsonEncode(_selectedSymbol.toJson())));
+                                  SharedPreferences.getInstance().then(
+                                      (prefs) => prefs.setString(
+                                          '_selectedSymbol',
+                                          jsonEncode(
+                                              _selectedSymbol.toJson())));
                                 },
                                 isExpanded: true,
                                 searchFn: (String keyword, items) {

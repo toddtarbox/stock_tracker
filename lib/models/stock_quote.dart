@@ -13,6 +13,7 @@ class StockQuote extends Equatable {
   final double previousClose;
 
   final double latestPrice;
+  final DateTime latestUpdate;
   final int latestVolume;
   final int averageVolume;
   final int marketCap;
@@ -32,6 +33,7 @@ class StockQuote extends Equatable {
       this.fiftyTwoWeekLow,
       this.previousClose,
       this.latestPrice,
+      this.latestUpdate,
       this.latestVolume,
       this.averageVolume,
       this.marketCap,
@@ -97,6 +99,8 @@ class StockQuote extends Equatable {
       latestPrice = latestPrice.toDouble();
     }
 
+    dynamic lastUpdate = DateTime.fromMillisecondsSinceEpoch(json['latestUpdate']);
+
     StockQuote stockQuote = StockQuote(
         companyName: companyName,
         symbol: symbol,
@@ -110,7 +114,8 @@ class StockQuote extends Equatable {
         marketCap: marketCap,
         peRatio: peRatio,
         previousClose: previousClose,
-        latestPrice: latestPrice);
+        latestPrice: latestPrice,
+        latestUpdate: lastUpdate);
 
     return stockQuote;
   }

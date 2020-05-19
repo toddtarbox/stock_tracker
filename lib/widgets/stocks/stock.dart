@@ -231,11 +231,24 @@ class _StockState extends State<Stock> {
   }
 
   Widget _renderQuote(BuildContext context, StockQuote stockQuote) {
-    return Text(stockQuote.getChangeText,
-        style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w300,
-            color: stockQuote.isPositiveChange() ? Colors.green : Colors.red));
+    var formatter = new DateFormat('MM-dd-yyyy h:mm a');
+    String lastestUpdate = formatter.format(stockQuote.latestUpdate.toLocal());
+
+    return Column(
+      children: [
+        Text(stockQuote.getChangeText,
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w300,
+                color:
+                    stockQuote.isPositiveChange() ? Colors.green : Colors.red)),
+        Padding(
+          padding: EdgeInsets.all(10),
+          child: Text(lastestUpdate,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w300)),
+        )
+      ],
+    );
   }
 
   Widget _renderStatsPortrait(BuildContext context, StockQuote stockQuote) {

@@ -19,16 +19,15 @@ class StockSymbol extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'symbol': symbol,
-  };
+        'name': name,
+        'symbol': symbol,
+      };
 
   static StockSymbol fromPrefsString(String prefsString) {
     dynamic prefsJSON = jsonDecode(prefsString);
 
-    StockSymbol stockSymbol = StockSymbol(
-        name: prefsJSON['name'],
-        symbol: prefsJSON['symbol']);
+    StockSymbol stockSymbol =
+        StockSymbol(name: prefsJSON['name'], symbol: prefsJSON['symbol']);
 
     return stockSymbol;
   }
